@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='styles.css')}}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Admin</div>
+        <div class="user-info">
+            <span class="user-icon">🛡️</span>
+            <span class="username">Admin</span>
+        </div>
+    </header>
+    <main class="container">
+        <div class="admin-layout" style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;">
+            <aside class="sidebar panel" style="position:static;">
+                <h2>Venues & Schedule</h2>
+                <div class="venues-list" id="venuesList" style="display:flex;flex-direction:column;gap:12px;">
+                    <div class="venue-box panel" style="padding:8px;">
+                        <h3 style="margin:0 0 8px 0;font-size:1rem;">All Venues</h3>
+                        <div class="venue-table-wrap" style="max-height:220px;overflow:auto;">
+                            <table id="venueTable" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #eef2f5;">Event</th><th style="text-align:left;padding:6px;border-bottom:1px solid #eef2f5;">Venue</th><th style="text-align:left;padding:6px;border-bottom:1px solid #eef2f5;">Time</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="venue-box panel" style="padding:8px;">
+                        <h3 style="margin:0 0 8px 0;font-size:1rem;">Today's Events</h3>
+                        <div id="todayList" style="max-height:200px;overflow:auto;">
+                            <table id="todayTable" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #eef2f5;">Event</th><th style="text-align:left;padding:6px;border-bottom:1px solid #eef2f5;">Venue</th><th style="text-align:left;padding:6px;border-bottom:1px solid #eef2f5;">Time</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <div class="main-content">
+                <section class="approve-events panel">
+                    <h2>Approve or Delete Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Club</th>
+                                <th>Date</th>
+                                <th>Venue</th>
+                                <th>Available</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approveTbody">
+                            <!-- pending rows rendered here -->
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+    </main>
+    <!-- venues are now a persistent left sidebar inside main -->
+    <script>
+        (function(){
+            const PKEY = 'pendingEvents';
+            const AKEY = 'approvedEvents';
+            let pending = JSON.parse(localStorage.getItem(PKEY) || 'null');
+            let approved = JSON.parse(localStorage.getItem(AKEY) || 'null');
+            if(!pending){ pending = { '201': { id:201, title:'Interclub Debate', club:'Debate Society', datetime:'2025-10-25T16:00', venue:'Hall A' } }; localStorage.setItem(PKEY, JSON.stringify(pending)); }
+            if(!approved) { approved = {}; localStorage.setItem(AKEY, JSON.stringify(approved)); }
+
+            // Approve/Delete actions and venue/availability controls
+            const approveTbody = document.getElementById('approveTbody');
+            const KNOWN_VENUES = ['Auditorium','Hall A','Hall B','Studio 1','Studio 2','Lab 1','Outdoor Ground'];
+            const VKEY = 'venueAvailability';
+            let venueAvail = JSON.parse(localStorage.getItem(VKEY) || '{}');
+
+            function renderPendingRows(){
+                approveTbody.innerHTML = '';
+                pending = JSON.parse(localStorage.getItem(PKEY) || '{}');
+                const ids = Object.keys(pending);
+                if(ids.length===0){ const tr = document.createElement('tr'); tr.innerHTML = '<td colspan="6" class="small">No pending events.</td>'; approveTbody.appendChild(tr); return; }
+                ids.forEach(id=>{
+                    const ev = pending[id];
+                    const tr = document.createElement('tr');
+                    const dt = new Date(ev.datetime || '');
+                    // venue select
+                    const sel = `<select class="venue-select" data-id="${id}">` + KNOWN_VENUES.map(v=> `<option value="${v}" ${((ev.venue||'')===v?'selected':'')}>${v}</option>`).join('') + `</select>`;
+                    // availability toggle
+                    const avail = (venueAvail[id] === undefined) ? true : !!venueAvail[id];
+                    const availBtn = `<button class="btn avail-btn ${avail? 'active':''}" data-id="${id}" data-avail="${avail}">${avail? 'Yes':'No'}</button>`;
+                    tr.innerHTML = `<td><strong>${ev.title}</strong></td><td class="small">${ev.club}</td><td>${dt.toLocaleString()}</td><td>${sel}</td><td>${availBtn}</td><td><button class="btn approve-btn" data-id="${id}">Approve</button><button class="btn btn-danger delete-btn" data-id="${id}">Delete</button></td>`;
+                    approveTbody.appendChild(tr);
+                });
+            }
+
+            // handle interactions (delegation)
+            approveTbody.addEventListener('change', function(e){
+                const sel = e.target.closest('.venue-select'); if(!sel) return; const id = sel.getAttribute('data-id'); const val = sel.value;
+                // update pending event venue
+                pending = JSON.parse(localStorage.getItem(PKEY) || '{}'); if(pending[id]){ pending[id].venue = val; localStorage.setItem(PKEY, JSON.stringify(pending)); renderVenueTable(); renderTodayEvents(); }
+            });
+
+            approveTbody.addEventListener('click', function(e){
+                const a = e.target.closest('.approve-btn'); if(a){ const id = a.getAttribute('data-id'); approved[id] = pending[id]; delete pending[id]; localStorage.setItem(PKEY, JSON.stringify(pending)); localStorage.setItem(AKEY, JSON.stringify(approved)); alert('Event approved.'); renderPendingRows(); renderVenueTable(); renderTodayEvents(); return; }
+                const d = e.target.closest('.delete-btn'); if(d){ const id = d.getAttribute('data-id'); if(confirm('Delete pending event?')){ delete pending[id]; localStorage.setItem(PKEY, JSON.stringify(pending)); renderPendingRows(); renderVenueTable(); renderTodayEvents(); } return; }
+                const av = e.target.closest('.avail-btn'); if(av){ const id = av.getAttribute('data-id'); const cur = av.getAttribute('data-avail') === 'true'; const next = !cur; av.setAttribute('data-avail', next); av.classList.toggle('active', next); av.textContent = next? 'Yes':'No'; venueAvail[id] = next; localStorage.setItem(VKEY, JSON.stringify(venueAvail)); return; }
+            });
+
+            // initial pending rows render
+            renderPendingRows();
+
+            // Venues & schedule rendering for the persistent left sidebar
+            const venueTableBody = document.querySelector('.venues-list #venueTable tbody');
+
+            function gatherAllEvents(){
+                const a = JSON.parse(localStorage.getItem(AKEY) || '{}');
+                const p = JSON.parse(localStorage.getItem(PKEY) || '{}');
+                const arr = [];
+                Object.values(a).forEach(ev=> arr.push(Object.assign({}, ev, { status: 'approved' })));
+                Object.values(p).forEach(ev=> arr.push(Object.assign({}, ev, { status: 'pending' })));
+                return arr.sort((x,y)=> new Date(x.datetime) - new Date(y.datetime));
+            }
+
+            function renderVenueTable(){
+                const events = gatherAllEvents();
+                venueTableBody.innerHTML = '';
+                if(!events.length){ const r = document.createElement('tr'); r.innerHTML = '<td colspan="3" class="small">No events scheduled.</td>'; venueTableBody.appendChild(r); return; }
+                events.forEach(ev=>{
+                    const tr = document.createElement('tr');
+                    const time = new Date(ev.datetime);
+                    tr.innerHTML = `<td><strong>${ev.title}</strong><div class="small">${ev.club}</div></td><td>${ev.venue || ev.location || '—'}</td><td>${time.toLocaleString()} <div class="small">${ev.status}</div></td>`;
+                    venueTableBody.appendChild(tr);
+                });
+            }
+
+            function renderTodayEvents(){
+                const tbody = document.querySelector('#todayTable tbody');
+                tbody.innerHTML = '';
+                const events = gatherAllEvents();
+                const todayISO = (new Date()).toISOString().slice(0,10);
+                const todays = events.filter(ev => (ev.datetime||'').slice(0,10) === todayISO);
+                if(!todays.length){ const r = document.createElement('tr'); r.innerHTML = '<td colspan="3" class="small">No events today.</td>'; tbody.appendChild(r); return; }
+                todays.forEach(ev=>{ const tr = document.createElement('tr'); const time = new Date(ev.datetime); tr.innerHTML = `<td><strong>${ev.title}</strong></td><td>${ev.venue || ev.location || '—'}</td><td>${time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} <div class="small">${ev.status}</div></td>`; tbody.appendChild(tr); });
+            }
+
+            // initial render of venue table
+            renderVenueTable();
+            renderTodayEvents();
+
+            // Re-render when approvals/pending change
+            window.addEventListener('storage', function(e){ if(e.key===AKEY || e.key===PKEY) { renderVenueTable(); renderTodayEvents(); } });
+        })();
+    </script>
+</body>
+</html>

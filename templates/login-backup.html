@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Login — EventDB</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='styles.css')}}">
+
+
+    <style>
+        .login-page { display:flex; align-items:center; justify-content:center; height:calc(100vh - 80px); }
+        .login-card { width:360px; background:#fff; border-radius:8px; box-shadow:0 10px 30px rgba(16,24,40,0.08); padding:20px; }
+        .login-card h2 { margin:0 0 12px 0; }
+        .login-card label { display:block; margin-bottom:8px; font-size:0.95rem; color:#445; }
+        .login-card input { width:100%; padding:10px; margin-bottom:12px; border:1px solid #e6eef2; border-radius:6px; }
+        .login-actions { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+        .login-actions .btn { flex:1; }
+        .small-help { font-size:0.85rem; color:#6b7a86; margin-top:8px; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">EventDB</div>
+        <div></div>
+    </header>
+
+    <main class="container login-page">
+        <div class="login-card">
+            <div id="formArea">
+                <h2 id="formTitle">Sign in</h2>
+                <form id="loginForm">
+                    {{form.hidden_tag()}}
+                    <label for="inpUser">Username</label>
+                    <input id="inpUser" name="username" autocomplete="username" required>
+
+                    <label for="inpPass">Password</label>
+                    <input id="inpPass" name="password" type="password" autocomplete="current-password" required>
+
+                    <div class="login-actions">
+                        <button type="submit" class="btn btn-primary">Sign in</button>
+                        <button type="button" id="guestBtn" class="btn btn-outline-dark">Continue as Guest</button>
+                    </div>
+                </form>
+                <div style="margin-top:10px;text-align:center;">
+                    <a href="#" id="showSignup">Create an account</a>
+                </div>
+            </div>
+
+            <div id="signupArea" style="display:none;">
+                <h2>Sign up</h2>
+                <form id="signupForm" method="POST" action="{{url_for('login')}}">
+                    {{ form.hidden_tag() }}
+                    <div id="roleRadioButton" style="display:flex;gap:12px;align-items:center;margin-bottom:8px;">
+                        <!--
+                        <label><input type="radio" name="acctType" value="student" checked> Student</label>
+                        <label><input type="radio" name="acctType" value="club"> Club</label>
+                        -->
+                        {% for role in form.role %}
+                            <div style='align-items:center;'>{{role(namee="acctType")}}<br>{{role.label()}}</div>
+                        {% endfor%}
+
+                    </div>
+                    <div id="studentFields" class='mb-3'>
+                        <!--
+                        <label>Full name<br><input id="suFull"></label>
+                        <label>Username<br><input id="suUser"></label>
+                        <label>Email<br><input id="suEmail" type="email"></label>
+                        <label>Password<br><input id="suPass" type="password"></label>
+                        <label>Confirm Password<br><input id="suPass2" type="password"></label>
+                        -->
+                        <div class="mb-3">
+                        {{form.name.label(class="form-label")}}
+                        {{form.name(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{form.username.label(class="form-label")}}
+                        {{form.username(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{form.email.label(class="form-label")}}
+                        {{form.email(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{form.phone.label(class="form-label")}}
+                        {{form.phone(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{form.dept.label(class="form-label")}}
+                        {{form.dept(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{form.password1.label(class="form-label")}}
+                        {{form.password1(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{form.password2.label(class="form-label")}}
+                        {{form.password2(class="form-control")}}</div>
+                    </div>
+                    <div id="clubFields" style="display:none;"  class='mb-3'>
+<!--                        
+                        <label>Club Name<br><input id="clubName"></label>
+                        <label>Chairperson<br><input id="clubChair"></label>
+                        <label>Vice Chairperson<br><input id="clubVice"></label>
+                        <label>Point of Contact<br><input id="clubPOC"></label>
+                        <label>Email<br><input id="clubEmail" type="email"></label>
+                        <label>Username for club account<br><input id="clubUser"></label>
+                        <label>Password<br><input id="clubPass" type="password"></label>
+                        <label>Confirm Password<br><input id="clubPass2" type="password"></label>
+                        -->
+                        <div class="mb-3">
+                        {{cform.name.label(class="form-label")}}
+                        {{cform.name(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.username.label(class="form-label")}}
+                        {{cform.username(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.chair.label(class="form-label")}}
+                        {{cform.chair(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.vice.label(class="form-label")}}
+                        {{cform.vice(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.poc.label(class="form-label")}}
+                        {{cform.poc(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.phone.label(class="form-label")}}
+                        {{cform.phone(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.email.label(class="form-label")}}
+                        {{cform.email(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.password1.label(class="form-label")}}
+                        {{cform.password1(class="form-control")}}</div>
+                        <div class="mb-3">
+                        {{cform.password2.label(class="form-label")}}
+                        {{cform.password2(class="form-control")}}</div>
+                    </div>
+                    <div id="studentSubmit" style="display:flex;gap:8px;margin-top:8px;">
+                        <!--
+                        <button class="btn" type="submit">Create account</button>
+                        -->
+                        {{form.submit(class="btn btn-secondary")}}
+                        <button class="btn btn-secondary" type="button" id="cancelSignup">Cancel</button>
+                    </div>
+                    <div id="clubSubmit" style="display:none;gap:8px;margin-top:8px;">
+                        <!--
+                        <button class="btn" type="submit">Create account</button>
+                        -->
+                        {{cform.submit(class="btn btn-secondary")}}
+                        <button class="btn btn-secondary" type="button" id="cancelSignup">Cancel</button>
+                    </div>
+                </form>
+                <div class="small-help">Accounts are stored locally for demo purposes only.</div>
+            </div>
+            <div class="small-help">This is a demo login — credentials are stored locally in your browser (localStorage).</div>
+        </div>
+    </main>
+
+    <script>
+        (function(){
+            const form = document.getElementById('loginForm');
+            const inpUser = document.getElementById('inpUser');
+            const inpPass = document.getElementById('inpPass');
+            const guestBtn = document.getElementById('guestBtn');
+            const showSignup = document.getElementById('showSignup');
+            const signupArea = document.getElementById('signupArea');
+            const formArea = document.getElementById('formArea');
+            const signupForm = document.getElementById('signupForm');
+            const cancelSignup = document.getElementById('cancelSignup');
+            const suFull = document.getElementById('suFull');
+            const suUser = document.getElementById('suUser');
+            const suEmail = document.getElementById('suEmail');
+            const suPass = document.getElementById('suPass');
+            const suPass2 = document.getElementById('suPass2');
+            const studentFields = document.getElementById('studentFields');
+            const studentSubmit = document.getElementById('studentSubmit');
+            const clubFields = document.getElementById('clubFields');
+            const clubSubmit = document.getElementById('clubSubmit');
+            const clubName = document.getElementById('clubName');
+            const clubChair = document.getElementById('clubChair');
+            const clubVice = document.getElementById('clubVice');
+            const clubPOC = document.getElementById('clubPOC');
+            const clubEmail = document.getElementById('clubEmail');
+            const clubUser = document.getElementById('clubUser');
+            const clubPass = document.getElementById('clubPass');
+            const clubPass2 = document.getElementById('clubPass2');
+            const acctRadios = signupForm.querySelectorAll('input[namee="acctType"]');
+
+            acctRadios.forEach(r=> r.addEventListener('change', function(){ if(this.value==='club'){ studentFields.style.display='none';studentSubmit.style.display='none'; clubFields.style.display='';clubSubmit.style.display='flex'; document.getElementById('formTitle').textContent='Sign up (Club)'; } else { studentFields.style.display='';studentSubmit.style.display='flex'; clubFields.style.display='none';clubSubmit.style.display='none'; document.getElementById('formTitle').textContent='Sign up'; } }));
+
+            function setProfile(username){
+                const profile = { fullName: username, username: username, email:'', dept:'', semester:'' };
+                localStorage.setItem('userProfile', JSON.stringify(profile));
+            }
+
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                const u = inpUser.value.trim();
+                const p = inpPass.value;
+                if(!u || !p){ alert('Enter username and password'); return; }
+                const auth = JSON.parse(localStorage.getItem('auth') || 'null');
+                if(auth){
+                    if(auth.username === u && auth.password === p){
+                        // success
+                        setProfile(u);
+                        location.href = "{{url_for('index')}}";
+                    } else {
+                        alert('Invalid username or password (demo).');
+                    }
+                } else {
+                    // first-time: save credentials locally
+                    localStorage.setItem('auth', JSON.stringify({ username: u, password: p }));
+                    setProfile(u);
+                    alert('Account created locally for demo. Redirecting...');
+                    location.href = "{{url_for('index')}}";
+                }
+            });
+
+            guestBtn.addEventListener('click', function(){
+                setProfile('Guest');
+                location.href = "{{url_for('index')}}";
+            });
+
+            // signup toggle handlers
+            showSignup.addEventListener('click', function(e){ e.preventDefault(); formArea.style.display = 'none'; signupArea.style.display = ''; document.getElementById('formTitle').textContent = 'Sign up'; });
+            cancelSignup.addEventListener('click', function(){ signupArea.style.display = 'none'; formArea.style.display = ''; document.getElementById('formTitle').textContent = 'Sign in'; });
+
+            signupForm.addEventListener('submit', function (e) {
+                const inputs = this.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.offsetParent === null) {
+                        input.removeAttribute('required');
+                    }
+                });
+            });
+        })();
+
+    </script>
+</body>
+</html>

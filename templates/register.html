@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Login — EventDB</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .login-page { display: flex; align-items: center; justify-content: center; height: calc(100vh - 80px); }
+        .login-card { width: 400px; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(16,24,40,0.08); padding: 20px; }
+        .login-card h2 { margin: 0 0 12px 0; }
+        .login-card label { display: block; margin-bottom: 8px; font-size: 0.95rem; color: #445; }
+        .login-card input, .login-card select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #e6eef2; border-radius: 6px; }
+        .login-actions { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+        .login-actions .btn { flex: 1; }
+        .small-help { font-size: 0.85rem; color: #6b7a86; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">EventDB</div>
+    </header>
+
+    <main class="container login-page">
+        <div class="login-card">
+            <!-- Signup area -->
+            <div id="signupArea" >
+                <h2>Sign up</h2>
+                
+                <!-- Account type selector -->
+                <div id="roleSelect" style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+                    <label><input type="radio" name="acctType" value="student" checked> Student</label>
+                    <label><input type="radio" name="acctType" value="club"> Club</label>
+                </div>
+
+                <!-- Student form -->
+                <form id="studentSignupForm" method="POST" action="{{ url_for('login') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">{{ form.name.label }}{{ form.name(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.username.label }}{{ form.username(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.email.label }}{{ form.email(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.phone.label }}{{ form.phone(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.dept.label }}{{ form.dept(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.password1.label }}{{ form.password1(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.password2.label }}{{ form.password2(class="form-control") }}</div>
+
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        {{ form.submit(class="btn btn-secondary") }}
+                        <button type="button" id="cancelStudentSignup" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+
+                <!-- Club form -->
+                <form id="clubSignupForm" method="POST" action="{{ url_for('login') }}" style="display: none;">
+                    {{ cform.hidden_tag() }}
+                    <div class="mb-3">{{ cform.name.label }}{{ cform.name(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.username.label }}{{ cform.username(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.chair.label }}{{ cform.chair(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.vice.label }}{{ cform.vice(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.poc.label }}{{ cform.poc(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.phone.label }}{{ cform.phone(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.email.label }}{{ cform.email(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.password1.label }}{{ cform.password1(class="form-control") }}</div>
+                    <div class="mb-3">{{ cform.password2.label }}{{ cform.password2(class="form-control") }}</div>
+
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        {{ cform.submit(class="btn btn-secondary") }}
+                        <button type="button" id="cancelClubSignup" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+
+                <div class="small-help">Accounts are stored locally for demo purposes only.</div>
+            </div>
+
+            <div class="small-help">This is a demo login — credentials are stored locally in your browser (localStorage).</div>
+        </div>
+    </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const signupArea = document.getElementById('signupArea');
+        const studentForm = document.getElementById('studentSignupForm');
+        const clubForm = document.getElementById('clubSignupForm');
+        const acctRadios = document.querySelectorAll('input[name="acctType"]');
+
+        // Toggle between student and club forms
+        acctRadios.forEach(radio => {
+            radio.addEventListener('change', function () {
+                if (this.value === 'club') {
+                    studentForm.style.display = 'none';
+                    clubForm.style.display = '';
+                } else {
+                    studentForm.style.display = '';
+                    clubForm.style.display = 'none';
+                }
+            });
+        });
+        const selected = document.querySelector('input[name="acctType"]:checked');
+        if (selected && selected.value === 'club') {
+            studentForm.style.display = 'none';
+            clubForm.style.display = '';
+        } else {
+            studentForm.style.display = '';
+            clubForm.style.display = 'none';
+        }
+    });
+    </script>
+</body>

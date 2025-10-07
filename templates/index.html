@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='styles.css')}}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">EVENTS</div>
+        <button class="user-info" id="userBtn" aria-haspopup="dialog" aria-expanded="false">
+            <span class="user-icon">👤</span>
+            <span class="username">You</span>
+        </button>
+    </header>
+
+    <!-- User profile popup (hidden by default) -->
+    <div class="user-popup" id="userPopup" role="dialog" aria-labelledby="userPopupTitle" aria-hidden="true">
+        <div class="user-popup-inner">
+            <div class="user-popup-header">
+                <h4 id="userPopupTitle">User Profile</h4>
+                <button class="close-btn" id="userPopupClose" aria-label="Close profile">✕</button>
+            </div>
+            <div class="user-popup-body">
+                <div id="userView">
+                    <div class="user-row"><span class="label">Full name</span><span class="value" id="profileFullName">John Doe</span></div>
+                    <div class="user-row"><span class="label">Username</span><span class="value" id="profileUsername">You</span></div>
+                    <div class="user-row"><span class="label">Email</span><span class="value" id="profileEmail">user@example.com</span></div>
+                    <div class="user-row"><span class="label">Department</span><span class="value" id="profileDept">—</span></div>
+                    <div class="user-row"><span class="label">Semester</span><span class="value" id="profileSemester">—</span></div>
+                    <div class="modal-actions">
+                        <button class="btn" id="editProfileBtn">Edit Profile</button>
+                    </div>
+                </div>
+                <div id="userEdit" style="display:none;">
+                    <label>Full name<br><input type="text" id="inpFullName"></label>
+                    <label>Username<br><input type="text" id="inpUsername"></label>
+                    <label>Email<br><input type="email" id="inpEmail"></label>
+                    <label>Department<br><input type="text" id="inpDept"></label>
+                    <label>Semester<br><input type="text" id="inpSemester"></label>
+                    <div class="modal-actions">
+                        <button class="btn" id="saveUserBtn">Save</button>
+                        <button class="btn btn-secondary" id="cancelUserEdit">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <main class="container">
+        <div class="layout">
+            <section class="main-content">
+                <div class="panel events-schedule">
+                    <h2>Event Schedule</h2>
+
+                    <ul class="events-list" id="eventsList">
+                        <li class="event-card" data-event-id="1">
+                            <div class="event-main">
+                                <div class="event-title">Sample Event</div>
+                                <div class="event-club">Music Club</div>
+                            </div>
+                            <div class="event-meta">
+                                <div class="location">
+                                    <!-- inline SVG pin -->
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#2d3e50" stroke-width="1" fill="#e74c3c"/>
+                                        <circle cx="12" cy="9" r="2.5" fill="#fff" stroke="#2d3e50" stroke-width="0.8"/>
+                                    </svg>
+                                    <span class="loc-text">Auditorium</span>
+                                </div>
+                                <div class="datetime">Oct 10, 2025 • 6:00 PM</div>
+                            </div>
+                            <div class="event-actions">
+                                <button class="btn action-btn" data-action="register" aria-pressed="false">Register</button>
+                                <button class="btn btn-outline action-btn" data-action="volunteer" aria-pressed="false">Volunteer</button>
+                            </div>
+                        </li>
+                        <!-- more event-cards go here -->
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Floating notification tab and panel -->
+    <button class="notif-tab" id="notifTab" aria-expanded="false" aria-controls="notifPanel" aria-label="Open notifications">
+        🔔
+        <span class="notif-badge" id="notifBadge">0</span>
+    </button>
+
+    <aside class="notif-panel" id="notifPanel" role="dialog" aria-labelledby="notifTitle" aria-hidden="true">
+        <div class="notif-header">
+            <h3 id="notifTitle">Notifications</h3>
+            <button class="close-btn" id="notifClose" aria-label="Close notifications">✕</button>
+        </div>
+        <div class="notif-body">
+            <ul id="notifList">
+                <li>No new notifications.</li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Left-side calendar tab & panel -->
+    <button class="left-cal-tab" id="leftCalTab" aria-expanded="false" aria-controls="leftCalPanel" aria-label="Open calendar">
+        <span class="left-icon">�</span>
+        <span class="left-text">Calendar</span>
+    </button>
+
+    <aside class="left-cal-panel" id="leftCalPanel" role="complementary" aria-labelledby="leftCalTitle" aria-hidden="true">
+        <div class="left-cal-header">
+            <button class="cal-nav" id="calPrev" aria-label="Previous month">‹</button>
+            <h4 id="leftCalTitle">Month Year</h4>
+            <button class="cal-nav" id="calNext" aria-label="Next month">›</button>
+            <button class="close-btn" id="leftCalClose" aria-label="Close">✕</button>
+        </div>
+        <div class="left-cal-body">
+            <div class="calendar" id="calendar"></div>
+            <div class="cal-events">
+                <h5>Events on <span id="selectedDateLabel">—</span></h5>
+                <ul id="calEventList">
+                    <li>No events.</li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        (function(){
+            const tab = document.getElementById('notifTab');
+            const panel = document.getElementById('notifPanel');
+            const closeBtn = document.getElementById('notifClose');
+
+            function openPanel(){
+                panel.classList.add('open');
+                panel.setAttribute('aria-hidden','false');
+                tab.setAttribute('aria-expanded','true');
+            }
+            function closePanel(){
+                panel.classList.remove('open');
+                panel.setAttribute('aria-hidden','true');
+                tab.setAttribute('aria-expanded','false');
+            }
+
+            tab.addEventListener('click', function(e){
+                if(panel.classList.contains('open')) closePanel(); else openPanel();
+            });
+            closeBtn.addEventListener('click', closePanel);
+            document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closePanel(); });
+            document.addEventListener('click', function(e){
+                if(!panel.classList.contains('open')) return;
+                if(e.target === tab || panel.contains(e.target) || tab.contains(e.target)) return;
+                closePanel();
+            });
+            // left-side calendar handlers and render
+            const leftTab = document.getElementById('leftCalTab');
+            const leftPanel = document.getElementById('leftCalPanel');
+            const leftClose = document.getElementById('leftCalClose');
+            const calEl = document.getElementById('calendar');
+            const calPrev = document.getElementById('calPrev');
+            const calNext = document.getElementById('calNext');
+            const calEventList = document.getElementById('calEventList');
+            const selectedDateLabel = document.getElementById('selectedDateLabel');
+
+            function openLeft(){ leftPanel.classList.add('open'); leftPanel.setAttribute('aria-hidden','false'); leftTab.setAttribute('aria-expanded','true'); }
+            function closeLeft(){ leftPanel.classList.remove('open'); leftPanel.setAttribute('aria-hidden','true'); leftTab.setAttribute('aria-expanded','false'); }
+
+            leftTab.addEventListener('click', function(e){ if(leftPanel.classList.contains('open')) closeLeft(); else openLeft(); });
+            leftClose.addEventListener('click', closeLeft);
+
+            // Simple calendar data (sample events). In a real app you'd fetch these from the backend.
+            const sampleEvents = [
+                { id:1, title:'Sample Event', club:'Music Club', location:'Auditorium', datetime:'2025-10-10T18:00' },
+                { id:2, title:'Art Meetup', club:'Art Club', location:'Studio 2', datetime:'2025-10-12T15:30' },
+                { id:3, title:'Coding Contest', club:'CS Club', location:'Lab 1', datetime:'2025-11-02T10:00' }
+            ];
+
+            // calendar state
+            const today = new Date();
+            let viewYear = today.getFullYear();
+            let viewMonth = today.getMonth(); // 0-indexed
+            let selectedDate = null;
+
+            function startOfDayISO(d){ const x = new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
+
+            function eventsForDate(dateISO){ return sampleEvents.filter(ev => ev.datetime.slice(0,10) === dateISO); }
+
+            function renderCalendar(year, month){
+                calEl.innerHTML = '';
+                const first = new Date(year, month, 1);
+                const last = new Date(year, month+1, 0);
+                const startDay = first.getDay(); // 0 Sun - 6 Sat
+
+                // header showing month/year
+                document.getElementById('leftCalTitle').textContent = first.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+
+                const grid = document.createElement('div');
+                grid.className = 'cal-grid';
+
+                // weekday headers
+                ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(w=>{
+                    const hd = document.createElement('div'); hd.className='cal-cell cal-weekday'; hd.textContent = w; grid.appendChild(hd);
+                });
+
+                // empty cells before first
+                for(let i=0;i<startDay;i++){ const e = document.createElement('div'); e.className='cal-cell cal-empty'; grid.appendChild(e); }
+
+                for(let d=1; d<=last.getDate(); d++){
+                    const date = new Date(year, month, d);
+                    const iso = startOfDayISO(date);
+                    const cell = document.createElement('button');
+                    cell.className = 'cal-cell cal-day';
+                    cell.textContent = d;
+                    const evs = eventsForDate(iso);
+                    if(evs.length) cell.classList.add('has-events');
+                    cell.addEventListener('click', function(){
+                        selectedDate = iso;
+                        updateEventList();
+                        // highlight selected
+                        calEl.querySelectorAll('.cal-day').forEach(n=>n.classList.remove('selected'));
+                        cell.classList.add('selected');
+                    });
+                    grid.appendChild(cell);
+                }
+
+                calEl.appendChild(grid);
+            }
+
+            function updateEventList(){
+                if(!selectedDate){ selectedDateLabel.textContent = '—'; calEventList.innerHTML = '<li>No events.</li>'; return; }
+                const evs = eventsForDate(selectedDate);
+                selectedDateLabel.textContent = new Date(selectedDate).toLocaleDateString();
+                if(!evs.length){ calEventList.innerHTML = '<li>No events.</li>'; return; }
+                calEventList.innerHTML = '';
+                evs.forEach(ev=>{
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${ev.title}</strong><div class="small">${ev.club} — ${new Date(ev.datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${ev.location}</div>`;
+                    calEventList.appendChild(li);
+                });
+            }
+
+            calPrev.addEventListener('click', function(){ viewMonth--; if(viewMonth<0){ viewMonth=11; viewYear--; } renderCalendar(viewYear, viewMonth); });
+            calNext.addEventListener('click', function(){ viewMonth++; if(viewMonth>11){ viewMonth=0; viewYear++; } renderCalendar(viewYear, viewMonth); });
+
+            // initial render
+            renderCalendar(viewYear, viewMonth);
+
+            // click outside to close
+            document.addEventListener('click', function(e){ if(!leftPanel.classList.contains('open')) return; if(e.target === leftTab || leftPanel.contains(e.target) || leftTab.contains(e.target)) return; closeLeft(); });
+
+            // Event action toggles (Register / Volunteer)
+            const eventsListEl = document.getElementById('eventsList');
+
+            // load persisted state
+            const persisted = JSON.parse(localStorage.getItem('eventActions') || '{}');
+
+            function updateActionUI(card, state){
+                const regBtn = card.querySelector('[data-action="register"]');
+                const volBtn = card.querySelector('[data-action="volunteer"]');
+                if(!regBtn || !volBtn) return;
+                const id = card.getAttribute('data-event-id');
+                const s = state || persisted[id] || {};
+                if(s.register){ regBtn.classList.add('active'); regBtn.setAttribute('aria-pressed','true'); regBtn.textContent = 'Registered'; }
+                else { regBtn.classList.remove('active'); regBtn.setAttribute('aria-pressed','false'); regBtn.textContent = 'Register'; }
+                if(s.volunteer){ volBtn.classList.add('active'); volBtn.setAttribute('aria-pressed','true'); volBtn.textContent = 'Volunteering'; }
+                else { volBtn.classList.remove('active'); volBtn.setAttribute('aria-pressed','false'); volBtn.textContent = 'Volunteer'; }
+            }
+
+            // init existing cards
+            eventsListEl.querySelectorAll('.event-card').forEach(card=> updateActionUI(card));
+
+            eventsListEl.addEventListener('click', function(e){
+                const btn = e.target.closest('.action-btn');
+                if(!btn) return;
+                const card = btn.closest('.event-card');
+                const id = card.getAttribute('data-event-id');
+                const action = btn.getAttribute('data-action');
+                const cur = persisted[id] || { register:false, volunteer:false };
+                // toggle
+                cur[action] = !cur[action];
+                // save
+                persisted[id] = cur;
+                localStorage.setItem('eventActions', JSON.stringify(persisted));
+                // update UI
+                updateActionUI(card, cur);
+            });
+
+            // User popup logic
+            const userBtn = document.getElementById('userBtn');
+            const userPopup = document.getElementById('userPopup');
+            const userPopupClose = document.getElementById('userPopupClose');
+
+            function loadProfile(){
+                const profile = JSON.parse(localStorage.getItem('userProfile') || JSON.stringify({ fullName:'John Doe', username:'You', email:'user@example.com', dept:'Computer Science', semester:'4' }));
+                document.getElementById('profileFullName').textContent = profile.fullName || '—';
+                document.getElementById('profileUsername').textContent = profile.username || '—';
+                document.getElementById('profileEmail').textContent = profile.email || '—';
+                document.getElementById('profileDept').textContent = profile.dept || '—';
+                document.getElementById('profileSemester').textContent = profile.semester || '—';
+            }
+
+            function openUserPopup(){ userPopup.classList.add('open'); userPopup.setAttribute('aria-hidden','false'); userBtn.setAttribute('aria-expanded','true'); loadProfile(); }
+            function closeUserPopup(){ userPopup.classList.remove('open'); userPopup.setAttribute('aria-hidden','true'); userBtn.setAttribute('aria-expanded','false'); }
+
+            userBtn.addEventListener('click', function(e){ if(userPopup.classList.contains('open')) closeUserPopup(); else openUserPopup(); });
+            userPopupClose.addEventListener('click', closeUserPopup);
+            document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeUserPopup(); });
+            document.addEventListener('click', function(e){ if(!userPopup.classList.contains('open')) return; if(e.target === userBtn || userPopup.contains(e.target) || userBtn.contains(e.target)) return; closeUserPopup(); });
+
+            // Edit profile UI wiring
+            const editProfileBtn = document.getElementById('editProfileBtn');
+            const userView = document.getElementById('userView');
+            const userEdit = document.getElementById('userEdit');
+            const inpFull = document.getElementById('inpFullName');
+            const inpUser = document.getElementById('inpUsername');
+            const inpEmail = document.getElementById('inpEmail');
+            const inpDept = document.getElementById('inpDept');
+            const inpSem = document.getElementById('inpSemester');
+            const saveUserBtn = document.getElementById('saveUserBtn');
+            const cancelUserEdit = document.getElementById('cancelUserEdit');
+
+            function openEdit(){
+                const p = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                inpFull.value = p.fullName || '';
+                inpUser.value = p.username || '';
+                inpEmail.value = p.email || '';
+                inpDept.value = p.dept || '';
+                inpSem.value = p.semester || '';
+                userView.style.display = 'none';
+                userEdit.style.display = '';
+            }
+
+            editProfileBtn.addEventListener('click', openEdit);
+            cancelUserEdit.addEventListener('click', function(){ userEdit.style.display='none'; userView.style.display=''; });
+
+            saveUserBtn.addEventListener('click', function(){
+                const data = { fullName: inpFull.value.trim(), username: inpUser.value.trim(), email: inpEmail.value.trim(), dept: inpDept.value.trim(), semester: inpSem.value.trim() };
+                localStorage.setItem('userProfile', JSON.stringify(data));
+                loadProfile();
+                // update header username text
+                const headerName = document.querySelector('.user-info .username'); if(headerName) headerName.textContent = data.username || 'You';
+                userEdit.style.display='none'; userView.style.display='';
+                alert('Profile saved.');
+            });
+        })();
+    </script>
+</body>
+</html>

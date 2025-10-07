@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Login — EventDB</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .login-page { display: flex; align-items: center; justify-content: center; height: calc(100vh - 80px); }
+        .login-card { width: 400px; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(16,24,40,0.08); padding: 20px; }
+        .login-card h2 { margin: 0 0 12px 0; }
+        .login-card label { display: block; margin-bottom: 8px; font-size: 0.95rem; color: #445; }
+        .login-card input, .login-card select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #e6eef2; border-radius: 6px; }
+        .login-actions { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+        .login-actions .btn { flex: 1; }
+        .small-help { font-size: 0.85rem; color: #6b7a86; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">EventDB</div>
+    </header>
+
+    <main class="container login-page">
+        <div class="login-card">
+            <!-- Login form -->
+            <div id="formArea">
+                <h2>Sign in</h2>
+                <form id="loginForm">
+                    
+                    <label for="inpUser">Username</label>
+                    <input id="inpUser" name="username" required autocomplete="username">
+
+                    <label for="inpPass">Password</label>
+                    <input id="inpPass" name="password" type="password" required autocomplete="current-password">
+
+                    <div class="login-actions">
+                        <button type="submit" class="btn btn-primary">Sign in</button>
+                        <a href="{{url_for('index')}}" class="btn btn-outline-dark" style='align-items: center;'>Continue as Guest</a>
+                    </div>
+                </form>
+                <div style="margin-top:10px; text-align:center;">
+                    <a href="#" id="showSignup">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>

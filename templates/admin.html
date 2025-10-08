@@ -14,6 +14,16 @@
             <span class="username">Admin</span>
         </div>
     </header>
+    {% for message in get_flashed_messages() %}
+        <div class="toast align-items-center text-bg-warning border-0 show" role="alert" aria-live="assertive" aria-atomic="true" style="opacity:0.5">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    {% endfor %}
     <main class="container">
         <div class="admin-layout" style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;">
             <aside class="sidebar panel" style="position:static;">

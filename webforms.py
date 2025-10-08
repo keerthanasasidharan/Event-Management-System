@@ -30,7 +30,7 @@ class ClubForm(FlaskForm):
 	submit=SubmitField("Submit")
 
 class LoginForm(FlaskForm):
-	role=RadioField("Role",choices=[('student',"Student"),('club',"Club")],default='student')
+	#role=RadioField("Role",choices=[('student',"Student"),('club',"Club")],default='student')
 	username=StringField("Username",validators=[DataRequired()])
 	password=PasswordField("Password",validators=[DataRequired()])
 	submit=SubmitField("Submit")

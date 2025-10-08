@@ -17,10 +17,24 @@
     </style>
 </head>
 <body>
+    <!-- here the messages will be shown in loop-->
+    
     <header class="navbar">
         <div class="logo">EventDB</div>
     </header>
-
+    <!-- flash message inte code -->
+    <div class="position-fixed top-10 start-50 translate-middle-x mt-3" style="z-index: 1055">
+    {% for message in get_flashed_messages() %}
+        <div class="toast align-items-center text-bg-warning border-0 show" role="alert" aria-live="assertive" aria-atomic="true" style="opacity:0.5">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
     <main class="container login-page">
         <div class="login-card">
             <!-- Signup area -->
@@ -34,7 +48,7 @@
                 </div>
 
                 <!-- Student form -->
-                <form id="studentSignupForm" method="POST" action="{{ url_for('login') }}">
+                <form id="studentSignupForm" method="POST" action="{{ url_for('register') }}">
                     {{ form.hidden_tag() }}
                     <div class="mb-3">{{ form.name.label }}{{ form.name(class="form-control") }}</div>
                     <div class="mb-3">{{ form.username.label }}{{ form.username(class="form-control") }}</div>
@@ -51,7 +65,7 @@
                 </form>
 
                 <!-- Club form -->
-                <form id="clubSignupForm" method="POST" action="{{ url_for('login') }}" style="display: none;">
+                <form id="clubSignupForm" method="POST" action="{{ url_for('register') }}" style="display: none;">
                     {{ cform.hidden_tag() }}
                     <div class="mb-3">{{ cform.name.label }}{{ cform.name(class="form-control") }}</div>
                     <div class="mb-3">{{ cform.username.label }}{{ cform.username(class="form-control") }}</div>

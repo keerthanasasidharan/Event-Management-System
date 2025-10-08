@@ -359,7 +359,7 @@ table th {
     align-items: center;
     cursor: pointer;
     box-shadow: 2px 6px 18px rgba(45,62,80,0.12);
-    z-index: 40;
+    z-index: 45;
 }
 
 .left-cal-tab .left-text { display: inline-block; font-size: 0.95rem; }
@@ -369,7 +369,7 @@ table th {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 320px;
+    width: 370px;
     max-width: 85vw;
     background: #fff;
     border-right: 1px solid #eef2f5;
@@ -386,7 +386,7 @@ table th {
 .left-cal-header h4 { flex:1; text-align:center; margin:0; }
 .left-cal-body { padding:12px; overflow:auto; display:flex; gap:12px; flex-direction:column; }
 
-.calendar { width:100%; }
+.calendar { width:20%; }
 .cal-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
 .cal-cell { padding:8px; text-align:center; border-radius:6px; }
 .cal-weekday { font-weight:700; color:#6b7a86; background:transparent; }
@@ -440,7 +440,6 @@ table th {
     margin-bottom: 1rem;
 }
 
-/* Buttons */
 .btn {
     padding: 0.5rem 1rem;
     font-size: 1rem;
@@ -472,18 +471,18 @@ table th {
 
 .login-card {
     position: relative;
-    overflow: hidden; /* prevents content from spilling out */
+    overflow: hidden;
     padding: 1rem;
 }
 
-/* Make sure form areas respect layout */
+
 #signupArea, #formArea {
     width: 100%;
-    max-width: 100%;
+    max-width: 400px;
+    margin: 2rem auto;
     box-sizing: border-box;
 }
 
-/* Optional: control vertical spacing */
 #signupArea {
     margin-top: 1rem;
 }

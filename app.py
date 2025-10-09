@@ -1,5 +1,5 @@
 # importing flash modules
-from flask import Flask,render_template,flash,redirect,url_for,render_template_string
+from flask import Flask,render_template,request,flash,redirect,url_for,render_template_string
 
 # modules for database
 from flask_sqlalchemy import SQLAlchemy
@@ -15,12 +15,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 #login
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
+#for date and time
+from datetime import datetime
+
 #Forms
 from webforms import *
 
 #initialising app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "my super secret key"
+app.secret_key = 'some_very_secret_key'
 
 #initialising database
 app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://root:1234@localhost/events'
@@ -33,17 +36,19 @@ ctx.push()
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.session_protection = "strong"
 @login_manager.user_loader
 def load_user(user_id):
 	user = Usernames.query.filter_by(username=user_id).first()
 	if not user:
-		return Students.query.get(user_id)
-	else:
-		type= user.type
-	if type=='student':
-		return Students.query.get(user_id)
-	else:
-		return Clubs.query.get(user_id)
+		return None
+	if user.type == 'student':
+		return Students.query.filter_by(username=user_id).first()
+	elif user.type == 'club':
+		return Clubs.query.filter_by(username=user_id).first()
+	elif user.type == 'admin':
+		return user
+	return None
 
 
 class Usernames(db.Model,UserMixin):
@@ -113,23 +118,79 @@ class Venueschedule(db.Model):
 
 
 # app routes
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-	return render_template('index.html')
+	form = StudentForm()
+	
+	if current_user.is_authenticated and current_user.type=='students':
+		student = Students.query.filter_by(username=current_user.username).first()
+		if not student:
+			flash("Error updating profile. Try again.")
+		elif request.method == 'POST':
+			student.student_name = request.form['name']
+			student.username = request.form['username']
+			student.department = request.form['dept']
+			student.phone = request.form['phone']
+			student.email = request.form['email']
+
+			try:
+				db.session.commit()
+				flash("Updated successfully")
+			except:
+				flash("Error updating profile. Try again.")
+	elif not current_user.is_authenticated or current_user.type=='clubs':
+		flash("You must login to register or volunteer in events")
+
+	return render_template('index.html', form=form)
+
+
+
 
 @app.route('/club',methods=['GET','POST'])
 @login_required
 def club():
-	return render_template('club.html')
+	form = ClubForm()
+	eform = EventForm()
+	if current_user.type=='students':
+		flash("Unauthorized access!!")
+		return redirect(url_for('index'))
+	elif 'edit_profile' in request.form and current_user.is_authenticated:
+		club = Clubs.query.filter_by(username=current_user.username).first()
+		if not club:
+			flash("Error updating profile. Try again.")
+		elif request.method == 'POST':
+			club.club_name = request.form['name']
+			club.username = request.form['username']
+			club.chairperson = request.form['chair']
+			club.vice_chairperson = request.form['vice']
+			club.point_of_contact = request.form['poc']
+			club.phone = request.form['phone']
+			club.email = request.form['email']
 
-@app.route('/admin',methods=['GET','POST'])
-@login_required
-def admin():
-	return render_template('admin.html')
+			try:
+				db.session.commit()
+				flash("Updated successfully")
+				return redirect(url_for('club'))
+			except:
+				flash("Error updating profile. Try again.")
+	elif 'create_event' in request.form and current_user.is_authenticated:
+		if eform.validate_on_submit():
+			x = None
+			if x:
+				#db.session.add(student)
+				#db.session.commit()
+				flash("Event created successfully")
+				return redirect(url_for('club'))
+			elif x is None:
+				flash("Venue not available at given date and time")
+	return render_template('club.html', form=form,eform=eform)
+
 
 @app.route('/login',methods=['GET','POST'])
 def login():
+	if current_user.is_authenticated:
+		flash("You have already signed in")
+		return redirect(url_for('index' if current_user.type=='students' else 'club'))
 	form=LoginForm()
 	if form.validate_on_submit():
 		role = Usernames.query.filter_by(username=form.username.data).first()
@@ -137,29 +198,32 @@ def login():
 			if role.type=='student':
 				student = Students.query.filter_by(username=form.username.data).first()
 				if check_password_hash(student.password_hash,form.password.data):
-					login_user(student)
+					login_user(student,remember=True)
+					print("Logged in user:", current_user.username)
+					print("Is authenticated:", current_user.is_authenticated)
 					flash("Login successful")
-					return render_template('index.html')
+					return redirect(url_for('index'))
 				else:
 					flash("Wrong password... Try again...")
 			elif role.type=='club':
 				club = Clubs.query.filter_by(username=form.username.data).first()
 				if check_password_hash(club.password_hash,form.password.data):
-					login_user(club)
+					login_user(club,remember=True)
 					flash("Login successful")
-					return render_template('club.html')
+					return redirect(url_for('club'))
 				else:
 					flash("Wrong password... Try again...")
-			else:
-				if form.password.data=='aana':
-					login_user(role)
-					return render_template('admin.html')
-				else:
-					# oru security iku vendi
-					flash("Username doesn't exist")
 		else:
 			flash("Username doesn't exist")
 	return render_template('login.html',form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+	logout_user()
+	flash("You have been logged out.")
+	return redirect(url_for('login'))
 
 
 
@@ -184,10 +248,12 @@ def register():
 			db.session.add(student)
 			db.session.commit()
 			flash("Student registered successfully")
-		else:
+			return redirect(url_for('login'))
+		elif student is None:
 			flash("Username already taken")
+		else:
+			flash("Email already in use")
 			return render_template('register.html',form=form,cform=cform)
-		return render_template('login.html')
 	elif cform.validate_on_submit():
 		club= Clubs.query.filter_by(email=cform.email.data).first()
 		user = Usernames.query.filter_by(username=cform.username.data).first()
@@ -207,10 +273,12 @@ def register():
 			db.session.add(club)
 			db.session.commit()
 			flash("Club registered successfully")
-		else:
+			return redirect(url_for('login'))
+		elif student is None:
 			flash("Username already taken")
+		else:
+			flash("Email already in use")
 			return render_template('register.html',form=form,cform=cform)
-		return render_template('login.html')
 	form.name.data=''
 	form.username.data=''
 	form.email.data=''
@@ -228,3 +296,4 @@ def register():
 	cform.vice.data=''
 	cform.poc.data=''
 	return render_template('register.html',form=form,cform=cform)
+

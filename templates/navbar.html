@@ -1,0 +1,129 @@
+<link rel="stylesheet" href="{{url_for('static',filename='styles.css')}}">
+<header class="navbar">
+        <div class="logo"><a href="{{url_for('index')}}" style="color:white;text-decoration:none;">EVENTS</a></div>
+        {% if current_user.is_authenticated %}
+            <button class="user-info" id="userBtn" aria-haspopup="dialog" aria-expanded="false">
+                <span class="user-icon">👤</span>
+                <span class="username">{% if current_user.type=='students'%}{{current_user.student_name | title}}{%else%}{{current_user.club_name|title}}{%endif%}</span>
+            </button>
+            <div class="user-popup" id="userPopup" role="dialog" aria-labelledby="userPopupTitle" aria-hidden="true">
+            <div class="user-popup-inner">
+                <div class="user-popup-header">
+                    <h4 id="userPopupTitle">{% if current_user.type=='students'%}Student Profile{%else%}Club Profile{%endif%}</h4>
+                    <button class="close-btn" id="userPopupClose" aria-label="Close profile">✕</button>
+                </div>
+                <div class="user-popup-body">
+                    <div id="userView">
+                        {% if current_user.type=='students' %}
+                            <div class="user-row"><span class="label">Full Name</span><span class="value" id="profileFullName">{{current_user.student_name|title}}</span></div>
+                            <div class="user-row"><span class="label">Username</span><span class="value" id="profileUsername">{{current_user.username}}</span></div>
+                            <div class="user-row"><span class="label">Department</span><span class="value" id="profileDept">{{current_user.department | upper}}</span></div>
+                            <div class="user-row"><span class="label">Phone Number</span><span class="value" id="profileSemester">{{current_user.phone}}</span></div>
+                            <div class="user-row"><span class="label">Email</span><span class="value" id="profileEmail">{{current_user.email}}</span></div>
+                        {% else %}
+                            <div class="user-row"><span class="label">Club Name</span><span class="value" id="profileFullName">{{current_user.club_name|title}}</span></div>
+                            <div class="user-row"><span class="label">Username</span><span class="value" id="profileUsername">{{current_user.username}}</span></div>
+                            <div class="user-row"><span class="label">Chairperson</span><span class="value" id="profileFullName">{{current_user.chairperson|title}}</span></div>
+                            <div class="user-row"><span class="label">Vice Chairperson</span><span class="value" id="profileFullName">{{current_user.vice_chairperson|title}}</span></div>
+                            <div class="user-row"><span class="label">Point of Contact</span><span class="value" id="profileFullName">{{current_user.point_of_contact|title}}</span></div>
+                            <div class="user-row"><span class="label">Phone Number</span><span class="value" id="profileSemester">{{current_user.phone}}</span></div>
+                            <div class="user-row"><span class="label">Email</span><span class="value" id="profileEmail">{{current_user.email}}</span></div>
+                        {% endif %}
+                        <div class="modal-actions">
+                            <button class="btn" id="editProfileBtn">Edit Profile</button>
+                            <a href="{{url_for('logout')}}" class="btn btn-danger">Logout</a>
+                        </div>
+                    </div>
+                    <div id="userEdit" style="display:none;">
+                    {% if current_user.type=='students' %}
+                        <form method='POST' action="{{url_for('index')}}"> 
+                            {{form.hidden_tag()}}
+                            <label>Full name<br><input type="text" value="{{current_user.student_name | title}}" class="form-control" name="name"></label>
+                            <label>Username<br><input type="text" id="inpUsername" value="{{current_user.username}}" class="form-control" name="username"></label>
+                            <label>Department<br><input type="text" id="inpDept" value="{{current_user.department | upper}}" class="form-control" name="dept"></label>
+                            <label>Phone Number<br><input type="text" id="inpSemester" value="{{current_user.phone}}" class="form-control" name="phone"></label>
+                            <label>Email<br><input type="email" id="inpEmail" value="{{current_user.email}}" class="form-control" name="email"></label>
+                            <div class="modal-actions">
+                                <button class="btn" id="saveUserBtn">Save</button>
+                    {% else %}
+                        <form method='POST' action="{{url_for('club')}}"> 
+                        {{form.hidden_tag()}}
+                        <label>Club Name<br><input type="text" value="{{current_user.club_name | title}}" class="form-control" name="name"></label>
+                        <label>Username<br><input type="text" id="inpUsername" value="{{current_user.username}}" class="form-control" name="username"></label>
+                        <label>Chairperson<br><input type="text" id="inpDept" value="{{current_user.chairperson | title}}" class="form-control" name="chair"></label><label>Vice Chairperson<br><input type="text" id="inpDept" value="{{current_user.vice_chairperson | title}}" class="form-control" name="vice"></label><label>Point of Contact<br><input type="text" id="inpDept" value="{{current_user.point_of_contact | title}}" class="form-control" name="poc"></label>
+                        <label>Phone Number<br><input type="text" id="inpSemester" value="{{current_user.phone}}" class="form-control" name="phone"></label>
+                        <label>Email<br><input type="email" id="inpEmail" value="{{current_user.email}}" class="form-control" name="email"></label>
+                        <div class="modal-actions">
+                                <button class="btn" id="saveUserBtn" name="edit_profile">Save</button>
+                    {% endif %}
+                            </form>
+                            <button class="btn btn-secondary" id="cancelUserEdit">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <script>
+                (function(){
+                    const userBtn = document.getElementById('userBtn');
+                    const userPopup = document.getElementById('userPopup');
+                    const userPopupClose = document.getElementById('userPopupClose');
+
+                    function loadProfile(){/*
+                        const profile = JSON.parse(localStorage.getItem('userProfile') || JSON.stringify({ fullName:'John Doe', username:'You', email:'user@example.com', dept:'Computer Science', semester:'4' }));
+                        document.getElementById('profileFullName').textContent = profile.fullName || '—';
+                        document.getElementById('profileUsername').textContent = profile.username || '—';
+                        document.getElementById('profileEmail').textContent = profile.email || '—';
+                        document.getElementById('profileDept').textContent = profile.dept || '—';
+                        document.getElementById('profileSemester').textContent = profile.semester || '—';*/
+                    }
+
+                    function openUserPopup(){ userPopup.classList.add('open'); userPopup.setAttribute('aria-hidden','false'); userBtn.setAttribute('aria-expanded','true'); loadProfile(); }
+                    function closeUserPopup(){ userPopup.classList.remove('open'); userPopup.setAttribute('aria-hidden','true'); userBtn.setAttribute('aria-expanded','false'); }
+
+                    userBtn.addEventListener('click', function(e){ if(userPopup.classList.contains('open')) closeUserPopup(); else openUserPopup(); });
+                    userPopupClose.addEventListener('click', closeUserPopup);
+                    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeUserPopup(); });
+                    document.addEventListener('click', function(e){ if(!userPopup.classList.contains('open')) return; if(e.target === userBtn || userPopup.contains(e.target) || userBtn.contains(e.target)) return; closeUserPopup(); });
+    /*
+                    const editProfileBtn = document.getElementById('editProfileBtn');*/
+                    const userView = document.getElementById('userView');
+                    const userEdit = document.getElementById('userEdit');/*
+                    const inpFull = document.getElementById('inpFullName');
+                    const inpUser = document.getElementById('inpUsername');
+                    const inpEmail = document.getElementById('inpEmail');
+                    const inpDept = document.getElementById('inpDept');
+                    const inpSem = document.getElementById('inpSemester');
+                    const saveUserBtn = document.getElementById('saveUserBtn');
+                    const cancelUserEdit = document.getElementById('cancelUserEdit');
+    */
+                    function openEdit(){/*
+                        const p = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                        inpFull.value = p.fullName || '';
+                        inpUser.value = p.username || '';
+                        inpEmail.value = p.email || '';
+                        inpDept.value = p.dept || '';
+                        inpSem.value = p.semester || '';*/
+                        userView.style.display = 'none';
+                        userEdit.style.display = '';
+                    }
+
+                    editProfileBtn.addEventListener('click', openEdit);
+                    cancelUserEdit.addEventListener('click', function(){ userEdit.style.display='none'; userView.style.display=''; });
+
+                    saveUserBtn.addEventListener('click', function(){
+    /*
+                        const data = { fullName: inpFull.value.trim(), username: inpUser.value.trim(), email: inpEmail.value.trim(), dept: inpDept.value.trim(), semester: inpSem.value.trim() };
+                        localStorage.setItem('userProfile', JSON.stringify(data));
+    */
+                        loadProfile();
+                        userEdit.style.display='none'; userView.style.display='';
+                    });
+                })();
+            </script>
+        {% else %}
+            <a href="{{url_for('login')}}" style="color:white;text-decoration:none;">
+                LOGIN
+            </a>
+        {% endif %}
+</header>

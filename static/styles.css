@@ -148,11 +148,11 @@ section {
 }
 .user-popup.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 .user-popup-inner { padding: 12px; }
-.user-popup-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f0f2f5; padding-bottom:8px; }
-.user-popup-body { padding-top:8px; display:flex; flex-direction:column; gap:8px; }
+.user-popup-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f0f2f5; padding-bottom:8px;color:#aaaaaa;font-style: italic; }
+.user-popup-body { padding-top:8px; display:flex; flex-direction:column; gap:8px;color:black; }
 .user-row { display:flex; justify-content:space-between; }
 .user-row .label { color:#6b7a86; font-size:0.85rem; }
-.user-row .value { font-weight:600; }
+.user-row .value { font-weight:600;color:black; }
 
 /* Club page: upcoming events */
 .upcoming-events { margin-bottom: 1.5rem; }

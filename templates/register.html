@@ -1,40 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Login — EventDB</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        .login-page { display: flex; align-items: center; justify-content: center; height: calc(100vh - 80px); }
-        .login-card { width: 400px; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(16,24,40,0.08); padding: 20px; }
-        .login-card h2 { margin: 0 0 12px 0; }
-        .login-card label { display: block; margin-bottom: 8px; font-size: 0.95rem; color: #445; }
-        .login-card input, .login-card select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #e6eef2; border-radius: 6px; }
-        .login-actions { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-        .login-actions .btn { flex: 1; }
-        .small-help { font-size: 0.85rem; color: #6b7a86; margin-top: 8px; }
-    </style>
-</head>
-<body>
-    <!-- here the messages will be shown in loop-->
-    
-    <header class="navbar">
-        <div class="logo">EventDB</div>
-    </header>
-    <!-- flash message inte code -->
-    <div class="position-fixed top-10 start-50 translate-middle-x mt-3" style="z-index: 1055">
-    {% for message in get_flashed_messages() %}
-        <div class="toast align-items-center text-bg-warning border-0 show" role="alert" aria-live="assertive" aria-atomic="true" style="opacity:0.5">
-            <div class="d-flex">
-                <div class="toast-body">
-                    {{ message }}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    {% endfor %}
-    </div>
+{% extends 'base.html'%}
+{% block content %}
     <main class="container login-page">
         <div class="login-card">
             <!-- Signup area -->
@@ -82,11 +47,9 @@
                         <button type="button" id="cancelClubSignup" class="btn btn-secondary">Cancel</button>
                     </div>
                 </form>
-
-                <div class="small-help">Accounts are stored locally for demo purposes only.</div>
+                <br><br>
+                <div class="small-help"></div>
             </div>
-
-            <div class="small-help">This is a demo login — credentials are stored locally in your browser (localStorage).</div>
         </div>
     </main>
     <script>
@@ -118,4 +81,4 @@
         }
     });
     </script>
-</body>
+{% endblock %}

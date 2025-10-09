@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Event</div>
+        <button class="user-info" id="clubUserBtn" aria-haspopup="dialog" aria-expanded="false">
+            <span class="user-icon">🏛️</span>
+            <span class="username">Club Name</span>
+        </button>
+    </header>
+    <main class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="upcoming">Upcoming Events</button>
+            <button class="tab" data-tab="pending">Pending Approval</button>
+        </div>
+        <section class="upcoming-events" data-panel="upcoming">
+            <h2>Upcoming Events</h2>
+            <div class="events-grid" id="clubUpcomingList">
+                <!-- sample card -->
+                <div class="event-card small" data-event-id="101">
+                    <div>
+                        <div class="event-title">Music Night</div>
+                        <div class="event-club">Music Club</div>
+                        <div class="small">Oct 20, 2025 • 7:00 PM — Auditorium</div>
+                    </div>
+                    <div>
+                        <button class="btn edit-btn" data-event-id="101">Edit Details</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="pending-approval" data-panel="pending" style="display:none;">
+            <h2>Pending Approval</h2>
+            <div class="events-grid" id="clubPendingList">
+                <!-- pending items rendered here -->
+            </div>
+        </section>
+        <section class="past-events">
+            <h2>Past Events</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Date</th>
+                        <th>Winners</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sample Past Event</td>
+                        <td>2025-09-01</td>
+                        <td>John Doe</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="manage-events">
+            <h2>Manage Events</h2>
+            <button class="btn" id="createEventBtn">Create Event</button>
+            <button class="btn btn-danger">Delete Event</button>
+        </section>
+    </main>
+    <!-- Edit Event Modal -->
+    <div class="modal" id="editModal" aria-hidden="true" role="dialog" aria-labelledby="editModalTitle">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h3 id="editModalTitle">Edit Event</h3>
+                <button class="close-btn" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <label>Title<br><input type="text" id="evtTitle"></label>
+                <label>Club<br><input type="text" id="evtClub"></label>
+                <label>Date & Time<br><input type="datetime-local" id="evtDatetime"></label>
+                <label>Venue<br>
+                    <select id="evtVenue">
+                        <option>Auditorium</option>
+                        <option>Auditorium Hall B</option>
+                        <option>Studio 1</option>
+                        <option>Lab 1</option>
+                    </select>
+                </label>
+                <label>Registration link (optional)<br><input type="url" id="evtRegLink" placeholder="https://"></label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="saveEvt">Save</button>
+                <button class="btn btn-danger" id="deleteEvt">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const list = document.getElementById('clubUpcomingList');
+            const modal = document.getElementById('editModal');
+            const modalClose = document.getElementById('modalClose');
+            const saveBtn = document.getElementById('saveEvt');
+            const deleteBtn = document.getElementById('deleteEvt');
+            const titleIn = document.getElementById('evtTitle');
+            const clubIn = document.getElementById('evtClub');
+            const dtIn = document.getElementById('evtDatetime');
+            const venueIn = document.getElementById('evtVenue');
+            const regIn = document.getElementById('evtRegLink');
+
+            // sample storage key
+            const STORE_KEY = 'clubUpcomingEvents';
+            let store = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+            // ensure sample exists
+            if(!store['101']) store['101'] = { id:101, title:'Music Night', club:'Music Club', datetime:'2025-10-20T19:00', venue:'Auditorium', regLink:'' };
+
+            function renderList(){
+                list.innerHTML = '';
+                Object.values(store).forEach(ev=>{
+                    const card = document.createElement('div'); card.className='event-card small'; card.setAttribute('data-event-id', ev.id);
+                    card.innerHTML = `<div><div class="event-title">${ev.title}</div><div class="event-club">${ev.club}</div><div class="small">${new Date(ev.datetime).toLocaleString()} — ${ev.venue || ev.location || ''}${ev.regLink? ' — <a href="'+ev.regLink+'" target="_blank">Register</a>':''}</div></div><div><button class="btn edit-btn" data-event-id="${ev.id}">Edit Details</button></div>`;
+                    list.appendChild(card);
+                });
+            }
+
+            function openModal(id){
+                if(id){
+                    const ev = store[id];
+                    titleIn.value = ev.title; clubIn.value = ev.club; dtIn.value = ev.datetime; venueIn.value = ev.venue || '';
+                    regIn.value = ev.regLink || '';
+                    modal.dataset.editId = id; deleteBtn.style.display = '';
+                } else {
+                    // create mode
+                    titleIn.value = ''; clubIn.value = ''; dtIn.value = ''; venueIn.selectedIndex = 0; regIn.value = '';
+                    modal.dataset.editId = '';
+                    deleteBtn.style.display = 'none';
+                }
+                modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+            }
+            function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); delete modal.dataset.editId; }
+
+            list.addEventListener('click', function(e){ const btn = e.target.closest('.edit-btn'); if(!btn) return; openModal(btn.getAttribute('data-event-id')); });
+            modalClose.addEventListener('click', closeModal);
+            document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+            saveBtn.addEventListener('click', function(){
+                let id = modal.dataset.editId;
+                if(!id){ id = Date.now().toString(); }
+                store[id] = { id: id, title: titleIn.value, club: clubIn.value, datetime: dtIn.value, venue: venueIn.value, regLink: regIn.value };
+                localStorage.setItem(STORE_KEY, JSON.stringify(store)); renderList(); closeModal();
+            });
+            deleteBtn.addEventListener('click', function(){ const id = modal.dataset.editId; if(confirm('Delete this event?')){ delete store[id]; localStorage.setItem(STORE_KEY, JSON.stringify(store)); renderList(); closeModal(); }});
+
+            // wire create button
+            const createBtn = document.getElementById('createEventBtn');
+            createBtn.addEventListener('click', function(){ openModal(null); });
+
+            // Tabs logic
+            const tabs = document.querySelectorAll('.tab');
+            const panels = document.querySelectorAll('[data-panel]');
+            function showPanel(name){
+                panels.forEach(p=>{ if(p.getAttribute('data-panel')===name){ p.style.display = ''; } else p.style.display = 'none'; });
+                tabs.forEach(t=> t.classList.toggle('active', t.getAttribute('data-tab')===name));
+
+                // hide other club sections when viewing pending approvals
+                const past = document.querySelector('.past-events');
+                const manage = document.querySelector('.manage-events');
+                if(name === 'pending'){
+                    if(past) past.style.display = 'none';
+                    if(manage) manage.style.display = 'none';
+                } else {
+                    if(past) past.style.display = '';
+                    if(manage) manage.style.display = '';
+                }
+            }
+            tabs.forEach(t=> t.addEventListener('click', ()=> showPanel(t.getAttribute('data-tab'))));
+
+            // Pending submissions
+            const pendingEl = document.getElementById('clubPendingList');
+            const PKEY = 'pendingEvents';
+            let pending = JSON.parse(localStorage.getItem(PKEY) || '{}');
+            if(Object.keys(pending).length===0){ pending['301'] = { id:301, title:'Chess Workshop', club:'Chess Club', datetime:'2025-10-30T10:00', venue:'Studio 1' }; localStorage.setItem(PKEY, JSON.stringify(pending)); }
+
+            function renderPending(){ pendingEl.innerHTML = ''; Object.values(pending).forEach(ev=>{ const card = document.createElement('div'); card.className='event-card small'; card.innerHTML = `<div><div class="event-title">${ev.title}</div><div class="small">${ev.club} — ${new Date(ev.datetime).toLocaleString()} — ${ev.venue}</div></div><div><button class="btn cancel-sub" data-id="${ev.id}">Cancel Submission</button></div>`; pendingEl.appendChild(card); }); }
+
+            pendingEl.addEventListener('click', function(e){ const btn = e.target.closest('.cancel-sub'); if(!btn) return; const id = btn.getAttribute('data-id'); if(confirm('Cancel this submission?')){ delete pending[id]; localStorage.setItem(PKEY, JSON.stringify(pending)); renderPending(); alert('Submission canceled.'); } });
+
+            renderList(); renderPending();
+        })();
+    </script>
+    
+    <!-- Club Profile Popup -->
+    <div class="modal" id="clubProfileModal" aria-hidden="true" role="dialog" aria-labelledby="clubProfileTitle">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h3 id="clubProfileTitle">Club Profile</h3>
+                <button class="close-btn" id="clubProfileClose">✕</button>
+            </div>
+            <div class="modal-body" id="clubProfileBody">
+                <div id="clubView">
+                    <p><strong>Club Name:</strong> <span id="viewClubName"></span></p>
+                    <p><strong>Chairperson:</strong> <span id="viewChair"></span></p>
+                    <p><strong>Vice Chairperson:</strong> <span id="viewVice"></span></p>
+                    <p><strong>Point(s) of Contact:</strong> <span id="viewPOC"></span></p>
+                    <p><strong>Email:</strong> <span id="viewEmail"></span></p>
+                    <p><strong>Phone:</strong> <span id="viewPhone"></span></p>
+                    <p><strong>Description:</strong> <span id="viewDesc"></span></p>
+                    <div class="modal-actions">
+                        <button class="btn" id="editClubBtn">Edit</button>
+                    </div>
+                </div>
+                <div id="clubEdit" style="display:none;">
+                    <label>Club Name<br><input type="text" id="inpClubName"></label>
+                    <label>Chairperson<br><input type="text" id="inpChair"></label>
+                    <label>Vice Chairperson<br><input type="text" id="inpVice"></label>
+                    <label>Point(s) of Contact<br><input type="text" id="inpPOC" placeholder="Comma separated"></label>
+                    <label>Email<br><input type="email" id="inpEmail"></label>
+                    <label>Phone<br><input type="tel" id="inpPhone"></label>
+                    <label>Description<br><textarea id="inpDesc" rows="3"></textarea></label>
+                    <div class="modal-actions">
+                        <button class="btn" id="saveClubBtn">Save</button>
+                        <button class="btn btn-secondary" id="cancelEditClub">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Club profile popup logic
+        (function(){
+            const MODAL_KEY = 'clubProfile';
+            const userBtn = document.getElementById('clubUserBtn');
+            const modal = document.getElementById('clubProfileModal');
+            const closeBtn = document.getElementById('clubProfileClose');
+            const editBtn = document.getElementById('editClubBtn');
+            const clubView = document.getElementById('clubView');
+            const clubEdit = document.getElementById('clubEdit');
+            const saveBtn = document.getElementById('saveClubBtn');
+            const cancelEdit = document.getElementById('cancelEditClub');
+
+            const vName = document.getElementById('viewClubName');
+            const vChair = document.getElementById('viewChair');
+            const vVice = document.getElementById('viewVice');
+            const vPOC = document.getElementById('viewPOC');
+            const vEmail = document.getElementById('viewEmail');
+            const vPhone = document.getElementById('viewPhone');
+            const vDesc = document.getElementById('viewDesc');
+
+            const iName = document.getElementById('inpClubName');
+            const iChair = document.getElementById('inpChair');
+            const iVice = document.getElementById('inpVice');
+            const iPOC = document.getElementById('inpPOC');
+            const iEmail = document.getElementById('inpEmail');
+            const iPhone = document.getElementById('inpPhone');
+            const iDesc = document.getElementById('inpDesc');
+
+            function loadProfile(){
+                const raw = localStorage.getItem(MODAL_KEY);
+                let data = raw ? JSON.parse(raw) : null;
+                if(!data){
+                    data = { name: 'Sample Club', chair: 'Alice Smith', vice: 'Bob Jones', poc: 'alice@example.com, bob@example.com', email: 'club@example.com', phone: '', desc: 'A short description about the club.' };
+                    localStorage.setItem(MODAL_KEY, JSON.stringify(data));
+                }
+                vName.textContent = data.name || '';
+                vChair.textContent = data.chair || '';
+                vVice.textContent = data.vice || '';
+                vPOC.textContent = data.poc || '';
+                vEmail.textContent = data.email || '';
+                vPhone.textContent = data.phone || '';
+                vDesc.textContent = data.desc || '';
+                // also update header username text
+                const headerName = document.querySelector('.user-info .username');
+                if(headerName) headerName.textContent = data.name || 'Club Name';
+            }
+
+            function openModal(){ loadProfile(); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); userBtn.setAttribute('aria-expanded','true'); }
+            function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); userBtn.setAttribute('aria-expanded','false'); clubEdit.style.display='none'; clubView.style.display=''; }
+
+            userBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+            document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+            editBtn.addEventListener('click', function(){
+                // populate inputs
+                iName.value = vName.textContent || '';
+                iChair.value = vChair.textContent || '';
+                iVice.value = vVice.textContent || '';
+                iPOC.value = vPOC.textContent || '';
+                iEmail.value = vEmail.textContent || '';
+                iPhone.value = vPhone.textContent || '';
+                iDesc.value = vDesc.textContent || '';
+                clubView.style.display = 'none';
+                clubEdit.style.display = '';
+            });
+
+            cancelEdit.addEventListener('click', function(){ clubEdit.style.display='none'; clubView.style.display=''; });
+
+            saveBtn.addEventListener('click', function(){
+                const data = {
+                    name: iName.value.trim(),
+                    chair: iChair.value.trim(),
+                    vice: iVice.value.trim(),
+                    poc: iPOC.value.trim(),
+                    email: iEmail.value.trim(),
+                    phone: iPhone.value.trim(),
+                    desc: iDesc.value.trim()
+                };
+                localStorage.setItem(MODAL_KEY, JSON.stringify(data));
+                loadProfile();
+                clubEdit.style.display='none'; clubView.style.display='';
+                alert('Club profile saved.');
+            });
+
+            // initialize
+            loadProfile();
+        })();
+    </script>
+</body>
+</html>

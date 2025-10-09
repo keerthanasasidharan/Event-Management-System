@@ -140,8 +140,10 @@ def index():
 				flash("Error updating profile. Try again.")
 	elif not current_user.is_authenticated or current_user.type=='clubs':
 		flash("You must login to register or volunteer in events")
-
-	return render_template('index.html', form=form)
+	events = Events.query.order_by(Events.event_date)
+	clubs = Clubs.query.with_entities(Clubs.club_id,Clubs.club_name).all()
+	club_lookup = {club.club_id: club.club_name for club in clubs}
+	return render_template('index.html', form=form,events=events,club_lookup=club_lookup)
 
 
 
@@ -175,13 +177,13 @@ def club():
 				flash("Error updating profile. Try again.")
 	elif 'create_event' in request.form and current_user.is_authenticated:
 		if request.method == 'POST':
-			rawdt = request.form['evtDateTime']
+			'''rawdt = request.form['evt']
 			if rawdt:
 				dt = datetime.strptime(rawdt,"%Y-%m-%dT%H:%M")
 				date=dt.date().isoformat()
 				time=dt.time().strftime("%H:%M:%S")
 				print("djbndfkhbndfk")
-			'''	event=Events(title=request.form['title'],
+				event=Events(title=request.form['title'],
 					description=request.form['desc'],
 					category=request.form['category'],
 					event_date=date,
@@ -197,10 +199,10 @@ def club():
 						'title': eform.title.data,
 						'description': eform.desc.data,
 						'category': eform.category.data,
-						'event_date': date,
-						'event_time': time,
-						'event_endtime' : time,
-						'reg_last_date': reg_last_date
+						'event_date': eform.date.data,
+						'event_time': eform.stime.data,
+						'event_endtime' : eform.etime.data,
+						'reg_last_date': None 
 					}
 				)
 				db.session.commit()
@@ -210,7 +212,8 @@ def club():
 			except Exception as e:
 				db.session.rollback()
 				print({'error':str(e)})
-	return render_template('club.html', form=form,eform=eform)
+	events = Events.query.order_by(Events.event_date)
+	return render_template('club.html', form=form,eform=eform,events=events)
 
 
 @app.route('/login',methods=['GET','POST'])

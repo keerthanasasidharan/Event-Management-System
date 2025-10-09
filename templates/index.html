@@ -7,11 +7,11 @@
                     <h2>Event Schedule</h2>
 
                     <ul class="events-list" id="eventsList">
+                        {% for ev in events %}
                         <li class="event-card" data-event-id="1">
-                            
                             <div class="event-main">
-                                <div class="event-title">Sample Event</div>
-                                <div class="event-club">Music Club</div>
+                                <div class="event-title">{{ev.title | title}}</div>
+                                <div class="event-club">{{ club_lookup.get(ev.club_id, 'Unknown Club') }}</div>
                             </div>
                             <div class="event-meta">
                                 <div class="location">
@@ -22,14 +22,13 @@
                                     </svg>
                                     <span class="loc-text">Auditorium</span>
                                 </div>
-                                <div class="datetime">Oct 10, 2025 • 6:00 PM</div>
+                                <div class="datetime">{{ev.event_date.strftime('%B %d, %Y')}} • {{ev.event_time.strftime('%I:%M %p')}}</div>
                             </div>
                             <div class="event-actions">
                                 <button class="btn action-btn" data-action="register" aria-pressed="false">Register</button>
-                                <button class="btn btn-outline action-btn" data-action="volunteer" aria-pressed="false">Volunteer</button>
                             </div>
                         </li>
-                        <!-- more event-cards go here -->
+                    {% endfor %}
                     </ul>
                 </div>
             </section>

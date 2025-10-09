@@ -5,74 +5,41 @@
         <h2>Upcoming Events</h2>
         <div class="events-grid" id="clubUpcomingList">
             <!-- sample card -->
-            {% for ev in events %}
             <div class="event-card small" data-event-id="101">
                 <div>
-                    <div class="event-title">{{ev.title | title}}</div>
-                    <div class="small">{{ev.event_date.strftime('%B %d, %Y')}} - {{ev.event_time.strftime('%I:%M %p')}}</div>
+                    <div class="event-title">Music Night</div>
+                    <div class="event-club">Music Club</div>
+                    <div class="small">Oct 20, 2025 • 7:00 PM — Auditorium</div>
                 </div>
                 <div>
-                    <button class="btn" id="requestVenueBtn">Request Venue</button>
                     <button class="btn edit-btn" data-event-id="101">Edit Details</button>
                 </div>
             </div>
-            {% endfor %}
         </div>
-            
     </section>
     <section class="past-events">
-<!-- Request Venue Modal -->
-<div class="modal" id="requestVenueModal" aria-hidden="true" role="dialog" aria-labelledby="requestVenueModalTitle">
-    <div class="modal-inner">
-        <div class="modal-header">
-            <h3 id="requestVenueModalTitle">Request Venue</h3>
-            <button class="close-btn" id="requestVenueModalClose">✕</button>
-        </div>
-        <div class="modal-body">
-            <form id="venueRequestForm" method="POST" action="{{url_for('club')}}">
-                <label for="venue">Venue</label><br>
-                <input type="text" id="venue" name="venue" class="form-control" required><br>
-                <label for="start_date">Start Date</label><br>
-                <input type="date" id="start_date" name="start_date" class="form-control" required><br>
-                <label for="start_time">Start Time</label><br>
-                <input type="time" id="start_time" name="start_time" class="form-control" required><br>
-                <label for="end_time">End Time</label><br>
-                <input type="time" id="end_time" name="end_time" class="form-control" required><br>
-        </div>
-        <div class="modal-actions">
-            <button class="btn" type="submit">Submit Request</button>
-        </div>
-            </form>
-    </div>
-</div>
         <h2>Past Events</h2>
-        <div class="past-events-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-           {% for ev in events %}
-            <div class="past-event-cell" style="border: 1px solid #d1d1d1; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 1rem;">
-                <strong>{{ev.title|title}}</strong><br>
-                <span>{{ev.event_date.strftime('%B %d, %Y')}}</span><br>
-                
-            </div>
-            {% endfor %}
-            <!-- Example for more events:
-            <div class="past-event-cell" style="border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 1rem;">
-                <strong>Another Event</strong><br>
-                <span>Date: 2025-08-15</span><br>
-                <span>Winners: Jane Smith</span>
-            </div>
-            -->
-            <!-- Example for more events:
-            <div class="past-event-cell">
-                <strong>Another Event</strong><br>
-                <span>Date: 2025-08-15</span><br>
-                <span>Winners: Jane Smith</span>
-            </div>
-            -->
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Winners</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Sample Past Event</td>
+                    <td>2025-09-01</td>
+                    <td>John Doe</td>
+                </tr>
+            </tbody>
+        </table>
     </section>
     <section class="manage-events">
         <h2>Manage Events</h2>
         <button class="btn" id="createEventBtn">Create Event</button>
+        <button class="btn btn-danger">Delete Event</button>
     </section>
 </main>
 <!-- Create Event Modal -->
@@ -93,12 +60,7 @@
             {{eform.category(class='form-control')}}<br>
             {{eform.venue.label}}
             {{eform.venue(class='form-control')}}<br>
-            {{eform.date.label }}
-            {{eform.date() }}<br>
-            {{eform.stime.label }}
-            {{eform.stime() }}<br>
-            {{eform.etime.label }}
-            {{eform.etime() }}<br>
+            <label>Date & Time<br><input type="datetime-local" id="evtDatetime"></label><br><br>
             {{eform.reglink.label}}
             {{eform.reglink(class='form-control')}}
         </div>
@@ -141,7 +103,7 @@
             {{eform.category(class='form-control')}}<br>
             {{eform.venue.label}}
             {{eform.venue(class='form-control')}}<br>
-            
+            <label>Date & Time<br><input type="datetime-local" id="evtDatetime" name="eventDateTime"></label><br><br>
             {{eform.reglink.label}}
             {{eform.reglink(class='form-control')}}
         </div>
@@ -153,7 +115,6 @@
 </div>
 
 <script>
-
     (function(){
         const list = document.getElementById('clubUpcomingList');
         const modal = document.getElementById('editModal');
@@ -161,9 +122,6 @@
         const modalClose = document.getElementById('modalClose');
         const modal_Close = document.getElementById('modal_Close');
         const saveBtn = document.getElementById('saveEvt');
-    const requestVenueBtn = document.getElementById('requestVenueBtn');
-    const requestVenueModal = document.getElementById('requestVenueModal');
-    const requestVenueModalClose = document.getElementById('requestVenueModalClose');
         //const createEventBtn = document.getElementById('createEvt');
         const titleIn = document.getElementById('evtTitle');
         const clubIn = document.getElementById('evtClub');
@@ -171,7 +129,6 @@
         const venueIn = document.getElementById('evtVenue');
         const regIn = document.getElementById('evtRegLink');
 
-console.log(document.getElementById('evtDateTime'));
 /*
         function renderList(){
             list.innerHTML = '';
@@ -211,19 +168,6 @@ console.log(document.getElementById('evtDateTime'));
         // wire create button
         const createEventBtn = document.getElementById('createEventBtn');
         createEventBtn.addEventListener('click', function(){ opencreateModal(null); });
-
-            // Request Venue modal logic
-            function openRequestVenueModal() {
-                requestVenueModal.classList.add('open');
-                requestVenueModal.setAttribute('aria-hidden', 'false');
-            }
-            function closeRequestVenueModal() {
-                requestVenueModal.classList.remove('open');
-                requestVenueModal.setAttribute('aria-hidden', 'true');
-            }
-            requestVenueBtn.addEventListener('click', openRequestVenueModal);
-            requestVenueModalClose.addEventListener('click', closeRequestVenueModal);
-            document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeRequestVenueModal(); });
 /*
         // Tabs logic
         const tabs = document.querySelectorAll('.tab');
@@ -255,7 +199,7 @@ console.log(document.getElementById('evtDateTime'));
 
         pendingEl.addEventListener('click', function(e){ const btn = e.target.closest('.cancel-sub'); if(!btn) return; const id = btn.getAttribute('data-id'); if(confirm('Cancel this submission?')){ delete pending[id]; localStorage.setItem(PKEY, JSON.stringify(pending)); renderPending(); alert('Submission canceled.'); } });
 */
-        //renderList();renderPending();
+        renderList(); renderPending();
     })();
 
 </script>

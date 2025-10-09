@@ -1,7 +1,7 @@
 
 #for doing forms
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, SelectField, RadioField, BooleanField, ValidationError
+from wtforms import StringField, SubmitField, PasswordField, SelectField, RadioField, BooleanField, ValidationError, DateField, TimeField
 from wtforms.validators import DataRequired, EqualTo,Length
 
 #inporting textarea which are bigger than regular text fields
@@ -42,7 +42,9 @@ class EventForm(FlaskForm):
 	title = StringField("Event Title", validators=[DataRequired()])
 	desc = StringField("Event Description", validators=[DataRequired()],widget=TextArea())
 	category = StringField("Category", validators=[DataRequired()])
-	date_time = StringField("Date & Time")
-	venue = SelectField("Venue",choices=[('dhwani',"Dhwani"),('cetaa','CETAA Hall'),('cgpu','CGPU'),('sargam',"Sargam"),('gazebo','Gazebo'),('dj','DJ Hall')],validators=[DataRequired()])
+	date = DateField("Event Date", format='%Y-%m-%d', validators=[DataRequired()])
+	stime = TimeField("Event Start Time", format='%H:%M', validators=[DataRequired()])
+	etime = TimeField("Event End Time", format='%H:%M', validators=[DataRequired()])
+	venue = SelectField("Venue",choices=[(1,"Dhwani"),(2,"Sargam"),(3,'Gazebo'),(4,'DJ Hall')],validators=[DataRequired()])
 	reglink = StringField("Registration Link (optional)")
 	submit=SubmitField("create_event")

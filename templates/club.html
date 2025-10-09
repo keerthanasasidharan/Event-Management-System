@@ -6,21 +6,29 @@
         <div class="events-grid" id="clubUpcomingList">
             <!-- sample card -->
             {% for ev in events %}
-            <div class="event-card small" data-event-id="101">
+            <div class="event-card small" data-event-id={{ev.event_id}}>
                 <div>
                     <div class="event-title">{{ev.title | title}}</div>
+                    {% if ev.event_date%}
                     <div class="small">{{ev.event_date.strftime('%B %d, %Y')}} - {{ev.event_time.strftime('%I:%M %p')}}</div>
+                    {%endif%}
                 </div>
                 <div>
-                   <!-- <button class="btn" id="requestVenueBtn">Request Venue</button> -->
-           
-                                    <!-- inline SVG pin -->
-                                    <button class="btn" style="pointer-events: none;background-color: #ffffff;color: black;border-color: #aaaaaa; border: 1px solid #c1c1c1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#2d3e50" stroke-width="1" fill="#e74c3c"/>
-                                        <circle cx="12" cy="9" r="2.5" fill="#fff" stroke="#2d3e50" stroke-width="0.8"/>
-                                    </svg>
-                                    <span class="loc-text">Auditorium</span></button>
-                    <button class="btn edit-btn" data-event-id="101">Edit Details</button>
+                    {% if schedule_lookup.get(ev.event_id,-1)==-1 %}
+                   <button class="btn req-btn" id="requestVenueBtn" data-event-id={{ev.event_id}}>Request Venue</button>
+                   {%else%}
+                    <button class="btn" style="pointer-events: none;background-color: #ffffff;color: black;border-color: #aaaaaa; border: 1px solid #c1c1c1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#2d3e50" stroke-width="1" fill="#e74c3c"/>
+                        <circle cx="12" cy="9" r="2.5" fill="#fff" stroke="#2d3e50" stroke-width="0.8"/>
+                    </svg>
+                    {% if schedule_lookup.get(ev.event_id,-1)!=0 %}
+                    <span class="loc-text">{{ venue_lookup.get(schedule_lookup.get(ev.event_id,-1), 'Venue Not Confirmed') }}</span>{%endif%}</button>
+                    
+                    {%endif%}
+                    <button class="btn edit-btn" data-event-id={{ev.event_id}} data-title="{{ ev.title }}"
+        data-desc="{{ ev.desc }}"
+        data-category="{{ ev.category }}"
+        data-reglink="{{ ev.reglink }}">Edit Details</button>
                 </div>
             </div>
             {% endfor %}
@@ -33,10 +41,11 @@
     <div class="modal-inner">
         <div class="modal-header">
             <h3 id="requestVenueModalTitle">Request Venue</h3>
-            <button class="close-btn" id="requestVenueModalClose">✕</button>
+            <button class="close-btn" id="modal__Close">✕</button>
         </div>
         <div class="modal-body">
             <form id="venueRequestForm" method="POST" action="{{url_for('club')}}">
+                <!--
                 <label for="venue">Venue</label><br>
                 <input type="text" id="venue" name="venue" class="form-control" required><br>
                 <label for="start_date">Start Date</label><br>
@@ -45,9 +54,20 @@
                 <input type="time" id="start_time" name="start_time" class="form-control" required><br>
                 <label for="end_time">End Time</label><br>
                 <input type="time" id="end_time" name="end_time" class="form-control" required><br>
+                -->
+                {{vform.hidden_tag()}}
+                <input type="hidden" id="reqpassingEvtId" name="event_id">
+                {{vform.venue.label}}
+                {{vform.venue(class='form-control')}}<br>
+                {{vform.date.label}}
+                {{vform.date(class='form-control')}}<br>
+                {{vform.stime.label}}
+                {{vform.stime(class='form-control')}}<br>
+                {{vform.etime.label}}
+                {{vform.etime(class='form-control')}}<br>
         </div>
         <div class="modal-actions">
-            <button class="btn" type="submit">Submit Request</button>
+            <button class="btn" type="submit" name="req_event">Submit Request</button>
         </div>
             </form>
     </div>
@@ -55,26 +75,17 @@
         <h2>Past Events</h2>
         <div class="past-events-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
            {% for ev in events %}
+           {% if ev.event_date%}
+           {% if ev.event_date < now %}
             <div class="past-event-cell" style="border: 1px solid #d1d1d1; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 1rem;">
                 <strong>{{ev.title|title}}</strong><br>
+                {% if ev.event_date %}
                 <span>{{ev.event_date.strftime('%B %d, %Y')}}</span><br>
-                
+                {%endif%}
             </div>
+            {%endif%}
+            {%endif%}
             {% endfor %}
-            <!-- Example for more events:
-            <div class="past-event-cell" style="border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 1rem;">
-                <strong>Another Event</strong><br>
-                <span>Date: 2025-08-15</span><br>
-                <span>Winners: Jane Smith</span>
-            </div>
-            -->
-            <!-- Example for more events:
-            <div class="past-event-cell">
-                <strong>Another Event</strong><br>
-                <span>Date: 2025-08-15</span><br>
-                <span>Winners: Jane Smith</span>
-            </div>
-            -->
         </div>
     </section>
     <section class="manage-events">
@@ -98,14 +109,14 @@
             {{eform.desc(class='form-control')}}<br>
             {{eform.category.label}}
             {{eform.category(class='form-control')}}<br>
-            {{eform.venue.label}}
-            {{eform.venue(class='form-control')}}<br>
+            <!--
             {{eform.date.label }}
             {{eform.date() }}<br>
             {{eform.stime.label }}
             {{eform.stime() }}<br>
             {{eform.etime.label }}
             {{eform.etime() }}<br>
+            -->
             {{eform.reglink.label}}
             {{eform.reglink(class='form-control')}}
         </div>
@@ -126,34 +137,19 @@
         <!-- Create Event -->
         <div class="modal-body">
         <form method="POST" action="{{url_for('club')}}">
-            <!--
-            <label>Title<br><input type="text" id="evtTitle"></label>
-            <label>Club<br><input type="text" id="evtClub"></label>
-            <label>Date & Time<br><input type="datetime-local" id="evtDatetime"></label>
-            <label>Venue<br>
-                <select id="evtVenue">
-                    <option>Auditorium</option>
-                    <option>Auditorium Hall B</option>
-                    <option>Studio 1</option>
-                    <option>Lab 1</option>
-                </select>
-            </label>
-            <label>Registration link (optional)<br><input type="url" id="evtRegLink" placeholder="https://"></label>
-            -->
+            <input type="hidden" id="edpassingEvtId" name="event_id">
+            {{eform.hidden_tag()}}
             {{eform.title.label}}
             {{eform.title(class='form-control')}}<br>
             {{eform.desc.label}}
             {{eform.desc(class='form-control')}}<br>
             {{eform.category.label}}
             {{eform.category(class='form-control')}}<br>
-            {{eform.venue.label}}
-            {{eform.venue(class='form-control')}}<br>
-            
             {{eform.reglink.label}}
             {{eform.reglink(class='form-control')}}
         </div>
         <div class="modal-actions">
-            {{eform.submit(class="btn")}}
+            <button class="btn" id="editEvt" name="edit_event">Save</button>
         </div>
         </form>
     </div>
@@ -165,31 +161,10 @@
         const list = document.getElementById('clubUpcomingList');
         const modal = document.getElementById('editModal');
         const moda = document.getElementById('createModal');
+        const mod = document.getElementById('requestVenueModal');
         const modalClose = document.getElementById('modalClose');
         const modal_Close = document.getElementById('modal_Close');
-        const saveBtn = document.getElementById('saveEvt');
-    const requestVenueBtn = document.getElementById('requestVenueBtn');
-    const requestVenueModal = document.getElementById('requestVenueModal');
-    const requestVenueModalClose = document.getElementById('requestVenueModalClose');
-        //const createEventBtn = document.getElementById('createEvt');
-        const titleIn = document.getElementById('evtTitle');
-        const clubIn = document.getElementById('evtClub');
-        const dtIn = document.getElementById('evtDatetime');
-        const venueIn = document.getElementById('evtVenue');
-        const regIn = document.getElementById('evtRegLink');
-
-console.log(document.getElementById('evtDateTime'));
-/*
-        function renderList(){
-            list.innerHTML = '';
-            Object.values(store).forEach(ev=>{
-                const card = document.createElement('div'); card.className='event-card small'; card.setAttribute('data-event-id', ev.id);
-                card.innerHTML = `<div><div class="event-title">${ev.title}</div><div class="event-club">${ev.club}</div><div class="small">${new Date(ev.datetime).toLocaleString()} — ${ev.venue || ev.location || ''}${ev.regLink? ' — <a href="'+ev.regLink+'" target="_blank">Register</a>':''}</div></div><div><button class="btn edit-btn" data-event-id="${ev.id}">Edit Details</button></div>`;
-                list.appendChild(card);
-            });
-        }
-*/
-
+        const modal__Close = document.getElementById('modal__Close');
 
         function openModal(id){
             modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
@@ -197,12 +172,21 @@ console.log(document.getElementById('evtDateTime'));
         function opencreateModal(id){
             moda.classList.add('open'); moda.setAttribute('aria-hidden','false');
         }
+        function openreqModal(id){
+            mod.classList.add('open'); mod.setAttribute('aria-hidden','false');
+        }
         function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); delete modal.dataset.editId; }
         function closecreateModal(){ moda.classList.remove('open'); moda.setAttribute('aria-hidden','true'); delete moda.dataset.editId; }
+        function closereqModal(){ mod.classList.remove('open'); mod.setAttribute('aria-hidden','true'); delete mod.dataset.editId; }
+
 
         list.addEventListener('click', function(e){ const btn = e.target.closest('.edit-btn'); if(!btn) return; openModal(btn.getAttribute('data-event-id')); });
         modalClose.addEventListener('click', closeModal);
         document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+        list.addEventListener('click', function(e){ const btn = e.target.closest('.req-btn'); if(!btn) return; openreqModal(btn.getAttribute('data-event-id')); });
+        modal__Close.addEventListener('click', closereqModal);
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape') closereqModal(); });
 
         list.addEventListener('click', function(e){ const btn = e.target.closest('.create-btn'); if(!btn) return; opencreateModal(btn.getAttribute('data-event-id')); });
         modal_Close.addEventListener('click', closecreateModal);
@@ -219,52 +203,54 @@ console.log(document.getElementById('evtDateTime'));
         const createEventBtn = document.getElementById('createEventBtn');
         createEventBtn.addEventListener('click', function(){ opencreateModal(null); });
 
-            // Request Venue modal logic
-            function openRequestVenueModal() {
-                requestVenueModal.classList.add('open');
-                requestVenueModal.setAttribute('aria-hidden', 'false');
-            }
-            function closeRequestVenueModal() {
-                requestVenueModal.classList.remove('open');
-                requestVenueModal.setAttribute('aria-hidden', 'true');
-            }
-            requestVenueBtn.addEventListener('click', openRequestVenueModal);
-            requestVenueModalClose.addEventListener('click', closeRequestVenueModal);
-            document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeRequestVenueModal(); });
-/*
-        // Tabs logic
-        const tabs = document.querySelectorAll('.tab');
-        const panels = document.querySelectorAll('[data-panel]');
-        function showPanel(name){
-            panels.forEach(p=>{ if(p.getAttribute('data-panel')===name){ p.style.display = ''; } else p.style.display = 'none'; });
-            tabs.forEach(t=> t.classList.toggle('active', t.getAttribute('data-tab')===name));
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
 
-            // hide other club sections when viewing pending approvals
-            const past = document.querySelector('.past-events');
-            const manage = document.querySelector('.manage-events');
-            if(name === 'pending'){
-                if(past) past.style.display = 'none';
-                if(manage) manage.style.display = 'none';
-            } else {
-                if(past) past.style.display = '';
-                if(manage) manage.style.display = '';
-            }
-        }
-        tabs.forEach(t=> t.addEventListener('click', ()=> showPanel(t.getAttribute('data-tab'))));
+                const eventId = this.dataset.eventId;
+                const title = this.dataset.title || '';
+                const desc = this.dataset.desc || '';
+                const category = this.dataset.category || '';
+                const reglink = this.dataset.reglink || '';
 
-        // Pending submissions
-        const pendingEl = document.getElementById('clubPendingList');
-        const PKEY = 'pendingEvents';
-        let pending = JSON.parse(localStorage.getItem(PKEY) || '{}');
-        if(Object.keys(pending).length===0){ pending['301'] = { id:301, title:'Chess Workshop', club:'Chess Club', datetime:'2025-10-30T10:00', venue:'Studio 1' }; localStorage.setItem(PKEY, JSON.stringify(pending)); }
+                // Set hidden input for event ID in your form
+                document.getElementById('edpassingEvtId').value = eventId;
 
-        function renderPending(){ pendingEl.innerHTML = ''; Object.values(pending).forEach(ev=>{ const card = document.createElement('div'); card.className='event-card small'; card.innerHTML = `<div><div class="event-title">${ev.title}</div><div class="small">${ev.club} — ${new Date(ev.datetime).toLocaleString()} — ${ev.venue}</div></div><div><button class="btn cancel-sub" data-id="${ev.id}">Cancel Submission</button></div>`; pendingEl.appendChild(card); }); }
+                // Fill the form fields
+                document.querySelector('input[name="title"]').value = title;
+                document.querySelector('textarea[name="desc"]').value = desc;
+                document.querySelector('input[name="category"]').value = category;
+                document.querySelector('input[name="reglink"]').value = reglink;
 
-        pendingEl.addEventListener('click', function(e){ const btn = e.target.closest('.cancel-sub'); if(!btn) return; const id = btn.getAttribute('data-id'); if(confirm('Cancel this submission?')){ delete pending[id]; localStorage.setItem(PKEY, JSON.stringify(pending)); renderPending(); alert('Submission canceled.'); } });
-*/
-        //renderList();renderPending();
-    })();
+                // Show the modal
+                modal.classList.add('open');
+                modal.setAttribute('aria-hidden', 'false');
+            });
+        });
 
+        document.querySelectorAll('.req-btn').forEach(button => {
+            button.addEventListener('click', function() {
+
+                const eventId = this.dataset.eventId;
+                const venue = this.dataset.venue || '';
+                const date = this.dataset.date || '';
+                const stime = this.dataset.sdate || '';
+                const etime = this.dataset.edate || '';
+
+                // Set hidden input for event ID in your form
+                document.getElementById('reqpassingEvtId').value = eventId;
+
+                // Fill the form fields
+                document.querySelector('input[name="venue"]').value = venue;
+                document.querySelector('textarea[name="date"]').value = date;
+                document.querySelector('input[name="stime"]').value = stime;
+                document.querySelector('input[name="etime"]').value = etime;
+
+                // Show the modal
+                mod.classList.add('open');
+                mod.setAttribute('aria-hidden', 'false');
+            });
+        });        
+})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

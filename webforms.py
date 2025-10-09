@@ -1,7 +1,7 @@
 
 #for doing forms
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, SelectField, RadioField, BooleanField, ValidationError, DateField, TimeField
+from wtforms import StringField, SubmitField, HiddenField, PasswordField, SelectField, RadioField, BooleanField, ValidationError, DateField, TimeField
 from wtforms.validators import DataRequired, EqualTo,Length
 
 #inporting textarea which are bigger than regular text fields
@@ -45,6 +45,14 @@ class EventForm(FlaskForm):
 	date = DateField("Event Date", format='%Y-%m-%d', validators=[DataRequired()])
 	stime = TimeField("Event Start Time", format='%H:%M', validators=[DataRequired()])
 	etime = TimeField("Event End Time", format='%H:%M', validators=[DataRequired()])
-	venue = SelectField("Venue",choices=[(1,"Dhwani"),(2,"Sargam"),(3,'Gazebo'),(4,'DJ Hall')],validators=[DataRequired()])
+	#venue = SelectField("Venue",choices=[(None,''),(1,"Dhwani"),(2,"Sargam"),(3,'Gazebo'),(4,'DJ Hall'),(5,'CETAA Hall')],validators=[DataRequired()])
 	reglink = StringField("Registration Link (optional)")
-	submit=SubmitField("create_event")
+	event_id = HiddenField()
+	submit = SubmitField("create_event")
+
+class ReqVenForm(FlaskForm):
+	venue = SelectField("Venue",choices=[(None,''),(1,"Dhwani"),(2,"Sargam"),(3,'Gazebo'),(4,'DJ Hall'),(5,'CETAA Hall')],validators=[DataRequired()])
+	date = DateField("Event Date", format='%Y-%m-%d', validators=[DataRequired()])
+	stime = TimeField("Event Start Time", format='%H:%M', validators=[DataRequired()])
+	etime = TimeField("Event End Time", format='%H:%M', validators=[DataRequired()])
+	submit = SubmitField("edit_event")

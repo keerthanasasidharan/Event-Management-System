@@ -82,18 +82,6 @@ class Events(db.Model):
 	def __repr__(self):
 		return '<Event ID : %r>' %self.event_id
 
-class Feedback(db.Model):
-	with app.app_context():
-		__table__ = db.Table('feedback', db.metadata, autoload_with=db.engine)
-	def __repr__(self):
-		return '<Feedback ID : %r>' %self.feedback_id
-
-class Notifications(db.Model):
-	with app.app_context():
-		__table__ = db.Table('notifications', db.metadata, autoload_with=db.engine)
-	def __repr__(self):
-		return '<Notification ID : %r>' %self.nofit_id
-
 class Participants(db.Model):
 	with app.app_context():
 		__table__ = db.Table('participants', db.metadata, autoload_with=db.engine)
@@ -126,7 +114,7 @@ def index():
 		student = Students.query.filter_by(username=current_user.username).first()
 		if not student:
 			flash("Error updating profile. Try again.")
-		elif request.method == 'POST':
+		elif 'reg_event' not in request.form and request.method == 'POST':
 			student.student_name = request.form['name']
 			student.username = request.form['username']
 			student.department = request.form['dept']
@@ -138,12 +126,37 @@ def index():
 				flash("Updated successfully")
 			except:
 				flash("Error updating profile. Try again.")
+		elif 'reg_event' in request.form and request.method == 'POST':
+			try:
+				print(request.form.get('event_id'),request.form.get('student_id'))
+				result = db.session.execute(text("CALL REGISTERFOREVENT(:event_id, :student_id)"),
+					{
+						'event_id': request.form.get('event_id'),
+						'student_id': request.form.get('student_id')
+					}
+				)
+				db.session.commit()
+				message_row = result.fetchone()
+				if message_row:
+					flash(message_row[0])  # the 'message' column as returned from the procedure
+				else:
+					flash("No message returned from procedure")
+				return redirect(url_for('index'))
+			except Exception as e:
+				db.session.rollback()
+				print({'error':str(e)})
 	elif not current_user.is_authenticated or current_user.type=='clubs':
 		flash("You must login to register or volunteer in events")
-	events = Events.query.order_by(Events.event_date)
+	events = Events.query.order_by(Events.event_date.desc())
 	clubs = Clubs.query.with_entities(Clubs.club_id,Clubs.club_name).all()
+	venues = Venues.query.with_entities(Venues.venue_id,Venues.venue_name).all()
 	club_lookup = {club.club_id: club.club_name for club in clubs}
-	return render_template('index.html', form=form,events=events,club_lookup=club_lookup)
+	venue_lookup = {venue.venue_id: venue.venue_name for venue in venues}
+	venueschedule = db.session.query(Venueschedule).all()
+	schedule_lookup = {s.event_id: s.venue_id for s in venueschedule}
+	participants = db.session.query(Participants).all()
+	p_lookup = {(p.student_id,p.event_id): p.participant_id for p in participants}
+	return render_template('index.html', form=form,events=events,club_lookup=club_lookup,venue_lookup=venue_lookup,schedule_lookup=schedule_lookup,p_lookup=p_lookup,now=date.today())
 
 
 
@@ -153,10 +166,11 @@ def index():
 def club():
 	form = ClubForm()
 	eform = EventForm()
+	vform = ReqVenForm()
 	if current_user.type=='students':
 		flash("Unauthorized access!!")
 		return redirect(url_for('index'))
-	elif 'edit_profile' in request.form and current_user.is_authenticated:
+	elif 'edit_profile' in request.form:
 		club = Clubs.query.filter_by(username=current_user.username).first()
 		if not club:
 			flash("Error updating profile. Try again.")
@@ -175,34 +189,20 @@ def club():
 				return redirect(url_for('club'))
 			except:
 				flash("Error updating profile. Try again.")
-	elif 'create_event' in request.form and current_user.is_authenticated:
+	elif 'create_event' in request.form:
 		if request.method == 'POST':
-			'''rawdt = request.form['evt']
-			if rawdt:
-				dt = datetime.strptime(rawdt,"%Y-%m-%dT%H:%M")
-				date=dt.date().isoformat()
-				time=dt.time().strftime("%H:%M:%S")
-				print("djbndfkhbndfk")
-				event=Events(title=request.form['title'],
-					description=request.form['desc'],
-					category=request.form['category'],
-					event_date=date,
-					event_time=time)
-			else:
-				event=Events(title=request.form['title'],
-					description=request.form['desc'],
-					category=request.form['category'])'''
 			try:
-				result = db.session.execute(text("CALL CreateEvent(:club_id, :title, :description, :category, :event_date, :event_time, :event_endtime,:reg_last_date)"),
+				result = db.session.execute(text("CALL CreateEvent(:club_id, :title, :description, :category, :event_date, :event_time, :event_endtime,:reg_last_date, :reg_link)"),
 					{
 						'club_id': current_user.club_id,
 						'title': eform.title.data,
 						'description': eform.desc.data,
 						'category': eform.category.data,
-						'event_date': eform.date.data,
-						'event_time': eform.stime.data,
-						'event_endtime' : eform.etime.data,
-						'reg_last_date': None 
+						'event_date': None,
+						'event_time': None,
+						'event_endtime' : None,
+						'reg_last_date': None,
+						'reg_link': eform.reglink.data
 					}
 				)
 				db.session.commit()
@@ -212,8 +212,50 @@ def club():
 			except Exception as e:
 				db.session.rollback()
 				print({'error':str(e)})
-	events = Events.query.order_by(Events.event_date)
-	return render_template('club.html', form=form,eform=eform,events=events)
+	elif 'edit_event' in request.form:
+		if request.method == 'POST':
+			print(request.form)
+			event_id = request.form.get('event_id')
+			event= Events.query.get(event_id)
+			try:
+				event.title=eform.title.data
+				event.desc=eform.desc.data
+				event.category=eform.category.data
+				event.reg_link=eform.reglink.data
+				db.session.commit()
+				flash("Event edited successfully")
+				return redirect(url_for('club'))
+			except Exception as e:
+				print(event_id)
+				db.session.rollback()
+				print({'error':str(e)})
+	elif 'req_event' in request.form:
+		if request.method == 'POST':
+			try:
+				result = db.session.execute(text("CALL REQUESTVENUE(:event_id, :venue_id, :start, :end)"),
+					{
+						'event_id': request.form.get('event_id'),
+						'venue_id': vform.venue.data,
+						'start': str(vform.date.data)+' '+str(vform.stime.data),
+						'end': str(vform.date.data)+' '+str(vform.etime.data)
+					}
+				)
+				db.session.commit()
+				message_row = result.fetchone()
+				if message_row:
+					flash(message_row[0])  # the 'message' column as returned from the procedure
+				else:
+					flash("No message returned from procedure")
+				return redirect(url_for('club'))
+			except Exception as e:
+				db.session.rollback()
+				print({'error':str(e)})
+	events = Events.query.filter_by(club_id=current_user.club_id).order_by(Events.event_date)
+	venueschedule = db.session.query(Venueschedule).all()
+	schedule_lookup = {s.event_id: s.venue_id for s in venueschedule}
+	venues = Venues.query.with_entities(Venues.venue_id,Venues.venue_name).all()
+	venue_lookup = {venue.venue_id: venue.venue_name for venue in venues}
+	return render_template('club.html', form=form,eform=eform,vform=vform,events=events,schedule_lookup=schedule_lookup,venue_lookup=venue_lookup,now=date.today())
 
 
 @app.route('/login',methods=['GET','POST'])

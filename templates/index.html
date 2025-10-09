@@ -28,16 +28,15 @@
                             </div>
                             {% if current_user.is_authenticated and current_user.type!='club' %}
                             <div class="event-actions">
+                                {% if p_lookup.get((current_user.student_id,ev.event_id),0)==0 %}
                                 <form method='POST' action="{{url_for('index')}}">
                                     <input type="hidden" id="reqpassingEvtId" name="event_id" value="{{ev.event_id}}">
                                     <input type="hidden" id="reqpassingEvtId" name="student_id" value="{{current_user.student_id}}">
-                                    <button type="submit" class="btn action-btn" name="reg_event" aria-pressed="false" {% if p_lookup.get((current_user.student_id,ev.event_id),0)!=0 %} style="pointer-events: none;background-color: #ffffff;color: black;border-color: #aaaaaa; border: 1px solid #c1c1c1;" {%endif%}>
-                                    {% if p_lookup.get((current_user.student_id,ev.event_id),0)==0 %}
-                                    Register
-                                    {% else %}
-                                    Registered
-                                    {% endif %}
-                                    </button>
+                                    <button type="submit" class="btn action-btn" name="reg_event" aria-pressed="false">Register</button>
+                                </form>
+                                {%else%}
+                                    <button type="submit" class="btn action-btn" aria-pressed="false" style="pointer-events: none;background-color: #ffffff;color: black;border-color: #aaaaaa; border: 1px solid #c1c1c1;">Registered</button>
+                                {%endif%}
                             </div>
                             {%endif%}
                             </div>
@@ -50,26 +49,9 @@
         </div>
     </main>
 
-    <!-- Floating notification tab and panel -->
-    <button class="notif-tab" id="notifTab" aria-expanded="false" aria-controls="notifPanel" aria-label="Open notifications">
-        🔔
-        <span class="notif-badge" id="notifBadge">0</span>
-    </button>
-
-    <aside class="notif-panel" id="notifPanel" role="dialog" aria-labelledby="notifTitle" aria-hidden="true">
-        <div class="notif-header">
-            <h3 id="notifTitle">Notifications</h3>
-            <button class="close-btn" id="notifClose" aria-label="Close notifications">✕</button>
-        </div>
-        <div class="notif-body">
-            <ul id="notifList">
-                <li>No new notifications.</li>
-            </ul>
-        </div>
-    </aside>
 
     <!-- Left-side calendar tab & panel -->
-    <button class="left-cal-tab" id="leftCalTab" aria-expanded="false" aria-controls="leftCalPanel" aria-label="Open calendar">
+<!--    <button class="left-cal-tab" id="leftCalTab" aria-expanded="false" aria-controls="leftCalPanel" aria-label="Open calendar">
         <span class="left-text">&nbsp;&nbsp;&nbsp;Calendar</span>
     </button>
 
@@ -90,7 +72,7 @@
             </div>
         </div>
     </aside>
-
+-->
     <script>
         (function(){
             const tab = document.getElementById('notifTab');

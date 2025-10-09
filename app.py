@@ -174,15 +174,27 @@ def club():
 			except:
 				flash("Error updating profile. Try again.")
 	elif 'create_event' in request.form and current_user.is_authenticated:
-		if eform.validate_on_submit():
-			x = None
-			if x:
-				#db.session.add(student)
-				#db.session.commit()
+		if request.method == 'POST':
+			rawdt = request.form.get('evtDateTime')
+			if rawdt:
+				dt = datetime.strptime(rawdt,"%Y-%m-%dT%H:%M")
+				date=dt.date().isoformat()
+				time=dt.time().strftime("%H:%M:%S")
+				event=Events(title=request.form['title'],
+					description=request.form['desc'],
+					category=request.form['category'],
+					event_date=date,
+					event_time=time)
+			else:
+				event=Events(title=request.form['title'],
+					description=request.form['desc'],
+					category=request.form['category'])
+			try:
+				db.session.execute(text())
 				flash("Event created successfully")
 				return redirect(url_for('club'))
-			elif x is None:
-				flash("Venue not available at given date and time")
+			except:
+				print("djfbndjbn")
 	return render_template('club.html', form=form,eform=eform)
 
 

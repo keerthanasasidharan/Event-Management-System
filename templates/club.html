@@ -12,7 +12,14 @@
                     <div class="small">{{ev.event_date.strftime('%B %d, %Y')}} - {{ev.event_time.strftime('%I:%M %p')}}</div>
                 </div>
                 <div>
-                    <button class="btn" id="requestVenueBtn">Request Venue</button>
+                   <!-- <button class="btn" id="requestVenueBtn">Request Venue</button> -->
+           
+                                    <!-- inline SVG pin -->
+                                    <button class="btn" style="pointer-events: none;background-color: #ffffff;color: black;border-color: #aaaaaa; border: 1px solid #c1c1c1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#2d3e50" stroke-width="1" fill="#e74c3c"/>
+                                        <circle cx="12" cy="9" r="2.5" fill="#fff" stroke="#2d3e50" stroke-width="0.8"/>
+                                    </svg>
+                                    <span class="loc-text">Auditorium</span></button>
                     <button class="btn edit-btn" data-event-id="101">Edit Details</button>
                 </div>
             </div>

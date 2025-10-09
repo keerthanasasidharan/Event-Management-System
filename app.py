@@ -175,12 +175,13 @@ def club():
 				flash("Error updating profile. Try again.")
 	elif 'create_event' in request.form and current_user.is_authenticated:
 		if request.method == 'POST':
-			rawdt = request.form.get('evtDateTime')
+			rawdt = request.form['evtDateTime']
 			if rawdt:
 				dt = datetime.strptime(rawdt,"%Y-%m-%dT%H:%M")
 				date=dt.date().isoformat()
 				time=dt.time().strftime("%H:%M:%S")
-				event=Events(title=request.form['title'],
+				print("djbndfkhbndfk")
+			'''	event=Events(title=request.form['title'],
 					description=request.form['desc'],
 					category=request.form['category'],
 					event_date=date,
@@ -188,13 +189,27 @@ def club():
 			else:
 				event=Events(title=request.form['title'],
 					description=request.form['desc'],
-					category=request.form['category'])
+					category=request.form['category'])'''
 			try:
-				db.session.execute(text())
+				result = db.session.execute(text("CALL CreateEvent(:club_id, :title, :description, :category, :event_date, :event_time, :event_endtime,:reg_last_date)"),
+					{
+						'club_id': current_user.club_id,
+						'title': eform.title.data,
+						'description': eform.desc.data,
+						'category': eform.category.data,
+						'event_date': date,
+						'event_time': time,
+						'event_endtime' : time,
+						'reg_last_date': reg_last_date
+					}
+				)
+				db.session.commit()
+
 				flash("Event created successfully")
 				return redirect(url_for('club'))
-			except:
-				print("djfbndjbn")
+			except Exception as e:
+				db.session.rollback()
+				print({'error':str(e)})
 	return render_template('club.html', form=form,eform=eform)
 
 

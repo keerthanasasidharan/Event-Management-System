@@ -39,7 +39,6 @@
     <section class="manage-events">
         <h2>Manage Events</h2>
         <button class="btn" id="createEventBtn">Create Event</button>
-        <button class="btn btn-danger">Delete Event</button>
     </section>
 </main>
 <!-- Create Event Modal -->
@@ -60,7 +59,7 @@
             {{eform.category(class='form-control')}}<br>
             {{eform.venue.label}}
             {{eform.venue(class='form-control')}}<br>
-            <label>Date & Time<br><input type="datetime-local" id="evtDatetime"></label><br><br>
+            <label>Date & Time<br><input type="datetime-local" id="evt" name="evt"></label><br><br>
             {{eform.reglink.label}}
             {{eform.reglink(class='form-control')}}
         </div>
@@ -103,7 +102,7 @@
             {{eform.category(class='form-control')}}<br>
             {{eform.venue.label}}
             {{eform.venue(class='form-control')}}<br>
-            <label>Date & Time<br><input type="datetime-local" id="evtDatetime" name="eventDateTime"></label><br><br>
+            
             {{eform.reglink.label}}
             {{eform.reglink(class='form-control')}}
         </div>
@@ -115,6 +114,7 @@
 </div>
 
 <script>
+
     (function(){
         const list = document.getElementById('clubUpcomingList');
         const modal = document.getElementById('editModal');
@@ -129,6 +129,7 @@
         const venueIn = document.getElementById('evtVenue');
         const regIn = document.getElementById('evtRegLink');
 
+console.log(document.getElementById('evtDateTime'));
 /*
         function renderList(){
             list.innerHTML = '';
@@ -199,7 +200,7 @@
 
         pendingEl.addEventListener('click', function(e){ const btn = e.target.closest('.cancel-sub'); if(!btn) return; const id = btn.getAttribute('data-id'); if(confirm('Cancel this submission?')){ delete pending[id]; localStorage.setItem(PKEY, JSON.stringify(pending)); renderPending(); alert('Submission canceled.'); } });
 */
-        renderList(); renderPending();
+        //renderList();renderPending();
     })();
 
 </script>

@@ -8,7 +8,7 @@
 
                     <ul class="events-list" id="eventsList">
                         {% for ev in events %}
-                        {% if ev.event_date > now %}
+                        {% if ev.event_date and ev.event_date> now %}
                         <li class="event-card" data-event-id="1">
                             <div class="event-main">
                                 <div class="event-title">{{ev.title | title}}</div>
@@ -51,7 +51,7 @@
 
 
     <!-- Left-side calendar tab & panel -->
-<!--    <button class="left-cal-tab" id="leftCalTab" aria-expanded="false" aria-controls="leftCalPanel" aria-label="Open calendar">
+    <button class="left-cal-tab" id="leftCalTab" aria-expanded="false" aria-controls="leftCalPanel" aria-label="Open calendar">
         <span class="left-text">&nbsp;&nbsp;&nbsp;Calendar</span>
     </button>
 
@@ -72,10 +72,10 @@
             </div>
         </div>
     </aside>
--->
+
     <script>
         (function(){
-            const tab = document.getElementById('notifTab');
+/*            const tab = document.getElementById('notifTab');
             const panel = document.getElementById('notifPanel');
             const closeBtn = document.getElementById('notifClose');
 
@@ -99,7 +99,7 @@
                 if(!panel.classList.contains('open')) return;
                 if(e.target === tab || panel.contains(e.target) || tab.contains(e.target)) return;
                 closePanel();
-            });
+            });*/
             // left-side calendar handlers and render
             const leftTab = document.getElementById('leftCalTab');
             const leftPanel = document.getElementById('leftCalPanel');
@@ -110,8 +110,8 @@
             const calEventList = document.getElementById('calEventList');
             const selectedDateLabel = document.getElementById('selectedDateLabel');
 
-            function openLeft(){ leftPanel.classList.add('open'); leftPanel.setAttribute('aria-hidden','false'); leftTab.setAttribute('aria-expanded','true'); }
-            function closeLeft(){ leftPanel.classList.remove('open'); leftPanel.setAttribute('aria-hidden','true'); leftTab.setAttribute('aria-expanded','false'); }
+            function openLeft(){ leftPanel.classList.add('open'); leftPanel.setAttribute('aria-hidden','false'); leftTab.setAttribute('aria-expanded','true'); };
+            function closeLeft(){ leftPanel.classList.remove('open'); leftPanel.setAttribute('aria-hidden','true'); leftTab.setAttribute('aria-expanded','false'); };
 
             leftTab.addEventListener('click', function(e){ if(leftPanel.classList.contains('open')) closeLeft(); else openLeft(); });
             leftClose.addEventListener('click', closeLeft);
@@ -121,6 +121,7 @@
                 { id:1, title:'Sample Event', club:'Music Club', location:'Auditorium', datetime:'2025-10-10T18:00' },
                 { id:2, title:'Art Meetup', club:'Art Club', location:'Studio 2', datetime:'2025-10-12T15:30' },
                 { id:3, title:'Coding Contest', club:'CS Club', location:'Lab 1', datetime:'2025-11-02T10:00' }
+                
             ];
 
             // calendar state

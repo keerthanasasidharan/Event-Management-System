@@ -6,6 +6,7 @@
         <div class="events-grid" id="clubUpcomingList">
             <!-- sample card -->
             {% for ev in events %}
+            {% if not ev.event_date or ev.event_date > now %}
             <div class="event-card small" data-event-id={{ev.event_id}}>
                 <div>
                     <div class="event-title">{{ev.title | title}}</div>
@@ -31,6 +32,7 @@
         data-reglink="{{ ev.reglink }}">Edit Details</button>
                 </div>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
             

@@ -8,7 +8,7 @@
 
                     <ul class="events-list" id="eventsList">
                         {% for ev in events %}
-                        {% if ev.event_date and ev.event_date> now %}
+                        {% if ev.event_date and ev.event_date> now and ev.status!='Cancelled'%}
                         <li class="event-card" data-event-id="1">
                             <div class="event-main">
                                 <div class="event-title">{{ev.title | title}}</div>
@@ -118,10 +118,15 @@
 
             // Simple calendar data (sample events). In a real app you'd fetch these from the backend.
             const sampleEvents = [
+                /*
                 { id:1, title:'Sample Event', club:'Music Club', location:'Auditorium', datetime:'2025-10-10T18:00' },
                 { id:2, title:'Art Meetup', club:'Art Club', location:'Studio 2', datetime:'2025-10-12T15:30' },
-                { id:3, title:'Coding Contest', club:'CS Club', location:'Lab 1', datetime:'2025-11-02T10:00' }
-                
+                { id:3, title:'Coding Contest', club:'CS Club', location:'Lab 1', datetime:'2025-11-02T10:00' }*/
+                {% for ev in events %}
+                {% if ev.event_date and ev.event_date> now %}
+                    { id:{{ev.event_id}},title:'{{ev.title}}',club:'{{ club_lookup.get(ev.club_id, "Unknown Club") }}', location:'{{venue_lookup.get(schedule_lookup.get(ev.event_id), "Venue Not Confirmed") }}',datetime:'{{ev.event_date}}T{{ev.event_time.strftime("%I:%M")}}'},
+                {% endif %}
+                {% endfor %}
             ];
 
             // calendar state
@@ -130,7 +135,7 @@
             let viewMonth = today.getMonth(); // 0-indexed
             let selectedDate = null;
 
-            function startOfDayISO(d){ const x = new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
+            function startOfDayISO(d){ const x = new Date(d); x.setHours(0,0,0,0); return x.toLocaleDateString('en-CA'); }
 
             function eventsForDate(dateISO){ return sampleEvents.filter(ev => ev.datetime.slice(0,10) === dateISO); }
 

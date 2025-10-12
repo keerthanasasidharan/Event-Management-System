@@ -6,7 +6,7 @@
         <div class="events-grid" id="clubUpcomingList">
             <!-- sample card -->
             {% for ev in events %}
-            {% if not ev.event_date or ev.event_date > now %}
+            {% if not ev.event_date or ev.event_date > now and ev.status!='Cancelled' %}
             <div class="event-card small" data-event-id={{ev.event_id}}>
                 <div>
                     <div class="event-title">{{ev.title | title}}</div>
@@ -27,7 +27,7 @@
                     
                     {%endif%}
                     <button class="btn edit-btn" data-event-id={{ev.event_id}} data-title="{{ ev.title }}"
-        data-desc="{{ ev.desc }}"
+        data-description="{{ ev.description }}"
         data-category="{{ ev.category }}"
         data-reglink="{{ ev.reglink }}">Edit Details</button>
                 </div>
@@ -47,16 +47,6 @@
         </div>
         <div class="modal-body">
             <form id="venueRequestForm" method="POST" action="{{url_for('club')}}">
-                <!--
-                <label for="venue">Venue</label><br>
-                <input type="text" id="venue" name="venue" class="form-control" required><br>
-                <label for="start_date">Start Date</label><br>
-                <input type="date" id="start_date" name="start_date" class="form-control" required><br>
-                <label for="start_time">Start Time</label><br>
-                <input type="time" id="start_time" name="start_time" class="form-control" required><br>
-                <label for="end_time">End Time</label><br>
-                <input type="time" id="end_time" name="end_time" class="form-control" required><br>
-                -->
                 {{vform.hidden_tag()}}
                 <input type="hidden" id="reqpassingEvtId" name="event_id">
                 {{vform.venue.label}}
@@ -78,12 +68,16 @@
         <div class="past-events-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
            {% for ev in events %}
            {% if ev.event_date%}
-           {% if ev.event_date < now %}
+           {% if ev.event_date < now or ev.status=='Cancelled' %}
             <div class="past-event-cell" style="border: 1px solid #d1d1d1; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 1rem;">
+                {% if ev.status!='Cancelled' %}
                 <strong>{{ev.title|title}}</strong><br>
                 {% if ev.event_date %}
                 <span>{{ev.event_date.strftime('%B %d, %Y')}}</span><br>
                 {%endif%}
+                {% else %}
+                <strong>{{ev.title|title}}<br><span style="color:red;">CANCELLED</span></strong><br>
+                {% endif %}
             </div>
             {%endif%}
             {%endif%}
@@ -141,17 +135,26 @@
         <form method="POST" action="{{url_for('club')}}">
             <input type="hidden" id="edpassingEvtId" name="event_id">
             {{eform.hidden_tag()}}
-            {{eform.title.label}}
+            <!--{{eform.title.label}}
             {{eform.title(class='form-control')}}<br>
             {{eform.desc.label}}
             {{eform.desc(class='form-control')}}<br>
             {{eform.category.label}}
             {{eform.category(class='form-control')}}<br>
             {{eform.reglink.label}}
-            {{eform.reglink(class='form-control')}}
+            {{eform.reglink(class='form-control')}}-->
+            <label for="title">Title</label><br>
+            <input type="text" id="etitle" name="title" class="form-control" required><br>
+            <label for="description">Description</label><br>
+            <input type="text" id="edescription" name="description" class="form-control" required><br>
+            <label for="category">Category</label><br>
+            <input type="text" id="ecategory" name="category" class="form-control" required><br>
+            <label for="reglink">Registration Link (optional)</label><br>
+            <input type="text" id="ereglink" name="reglink" class="form-control" required><br>
         </div>
         <div class="modal-actions">
             <button class="btn" id="editEvt" name="edit_event">Save</button>
+            <a href="#" id="edelete_event" class="btn btn-danger">Delete</a>
         </div>
         </form>
     </div>
@@ -209,19 +212,22 @@
             button.addEventListener('click', function() {
 
                 const eventId = this.dataset.eventId;
-                const title = this.dataset.title || '';
-                const desc = this.dataset.desc || '';
-                const category = this.dataset.category || '';
-                const reglink = this.dataset.reglink || '';
+                const title = this.dataset.title;
+                const description = this.dataset.description;
+                const category = this.dataset.category;
+                const reglink = this.dataset.reglink;
 
                 // Set hidden input for event ID in your form
                 document.getElementById('edpassingEvtId').value = eventId;
 
                 // Fill the form fields
-                document.querySelector('input[name="title"]').value = title;
-                document.querySelector('textarea[name="desc"]').value = desc;
-                document.querySelector('input[name="category"]').value = category;
-                document.querySelector('input[name="reglink"]').value = reglink;
+                document.getElementById('etitle').value = title;
+                document.getElementById('edescription').value = description;
+                document.getElementById('ecategory').value = category;
+                document.getElementById('ereglink').value = reglink;
+
+                // Filling event id in delete link
+                document.getElementById('edelete_event').href=`/delete_event/${eventId}`
 
                 // Show the modal
                 modal.classList.add('open');

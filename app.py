@@ -218,10 +218,11 @@ def club():
 			event_id = request.form.get('event_id')
 			event= Events.query.get(event_id)
 			try:
-				event.title=eform.title.data
+				'''event.title=eform.title.data
 				event.desc=eform.desc.data
 				event.category=eform.category.data
-				event.reg_link=eform.reglink.data
+				event.reg_link=eform.reglink.data'''
+
 				db.session.commit()
 				flash("Event edited successfully")
 				return redirect(url_for('club'))
@@ -369,3 +370,28 @@ def register():
 	cform.poc.data=''
 	return render_template('register.html',form=form,cform=cform)
 
+@app.route('/delete_event/<int:id>')
+@login_required
+def delete_event(id):
+	try:
+		db.session.execute(text('CALL CANCELEVENT(:event_id)'),
+			{
+				'event_id':id
+			}
+		)
+		#only delete if no participants have registered
+		'''if not Participants.query.filter_by(event_id=id).first():
+			db.session.execute(text('delete from events where event_id=:event_id'),
+				{
+					'event_id':id
+				}
+			)'''
+		db.session.commit()
+	except Exception as e:
+		db.session.rollback()
+		print({'error':str(e)})
+	return redirect(url_for('club'))
+
+@app.errorhandler(404)
+def not_found(e):
+	return render_template("404.html"),404

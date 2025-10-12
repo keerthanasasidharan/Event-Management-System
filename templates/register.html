@@ -25,7 +25,7 @@
 
                     <div style="display:flex;gap:8px;margin-top:8px;">
                         {{ form.submit(class="btn btn-secondary") }}
-                        <button type="button" id="cancelStudentSignup" class="btn btn-secondary">Cancel</button>
+                        <a href="{{url_for('index')}}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
 
@@ -44,7 +44,7 @@
 
                     <div style="display:flex;gap:8px;margin-top:8px;">
                         {{ cform.submit(class="btn btn-secondary") }}
-                        <button type="button" id="cancelClubSignup" class="btn btn-secondary">Cancel</button>
+                        <a href="{{url_for('index')}}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
                 <br><br>

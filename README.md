@@ -15,8 +15,9 @@ The College Event Management System is a database-driven application designed to
 - Relational Database Design  
 
 ##  How to Run
-1. Set up the database  
-2. Run the application  
+1. Set up the database
+2. start the srever 
+3. Run the application  
   
 
 ##  Contributors

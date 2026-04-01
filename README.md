@@ -16,7 +16,7 @@ The College Event Management System is a database-driven application designed to
 
 ##  How to Run
 1. Set up the database
-2. start the srever 
+2. start the server 
 3. Run the application  
   
 
